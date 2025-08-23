@@ -1,27 +1,5 @@
 ﻿#include "AStar.h"
 
-void AStar::setPath(Position current)
-{
-	Position pos = current;
-
-	while (pos.first != -1 || pos.second != -1)
-	{
-		path.push(pos);
-		
-		// 이동
-		map<Position, Position>::iterator it = visited.find(pos);
-
-		if (it != visited.end()) 
-		{
-			pos = it->second;
-		}
-		else 
-		{
-			break;
-		}
-	}
-}
-
 stack<Position> AStar::getPath()
 {
 	return path;
@@ -92,6 +70,28 @@ stack<Position> AStar::findPath(Position start, Position goal, const std::vector
 
 	// 경로 없음
 	return {};
+}
+
+void AStar::setPath(Position current)
+{
+	Position pos = current;
+
+	while (pos.first != -1 || pos.second != -1)
+	{
+		path.push(pos);
+
+		// 이동
+		map<Position, Position>::iterator it = visited.find(pos);
+
+		if (it != visited.end())
+		{
+			pos = it->second;
+		}
+		else
+		{
+			break;
+		}
+	}
 }
 
 bool AStar::isInRange(Position pos, const std::vector<std::vector<int>>& grid)

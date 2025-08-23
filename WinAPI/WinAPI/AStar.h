@@ -35,13 +35,13 @@ std::priority_queue<Node, std::vector<Node>, Compare> pq;
 class AStar
 {
 public:
-	void setPath(Position current);
-
 	stack<Position> getPath();
 
 	stack<Position> findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid);
 
 private:
+	void setPath(Position current);
+
 	bool isInRange(Position pos, const std::vector<std::vector<int>>& grid);
 
 	float heuristic(Position current, Position goal);
