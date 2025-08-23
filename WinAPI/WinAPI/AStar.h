@@ -10,16 +10,27 @@ using namespace std;
 // 2D 격자
 using Position = std::pair<int, int>;
 
-// TODO. 구조체, 연산자 오버로딩
-// TODO. 사용자 정의 해시
-struct Node
+struct Node 
 {
-	Position current;	// 현재 위치
-	Position parent;	// 이전 위치
-
-	float gCost;		
-	float hCost;
+	Position current;
+	Position parent;
+	float gCost = 0.f;
+	float hCost = 0.f;
+	float f() const { return gCost + hCost; }
 };
+
+// 우선 순위 큐에서 사용자 정의 타입을 오름차순으로 정렬하기 위한, 연산자 오버로딩이다.
+struct Compare 
+{
+	// vector의 greater은 내림차순이지만, priority_queue(heap)의 greater은 오름차순이다.
+	bool operator() (const Node& a, const Node& b) const 
+	{
+		return a.f() > b.f(); 
+	}
+};
+
+std::priority_queue<Node, std::vector<Node>, Compare> pq;
+
 
 class AStar
 {
@@ -44,7 +55,7 @@ private:
 			{ {1, 1}, 1.414f}, { {1, -1}, 1.414f}, { {-1, 1}, 1.414f}, { {-1, -1}, 1.414f}
 		};
 
-	priority_queue<Node, vector<Node>, greater<Node>> pq;
+	priority_queue<Node, vector<Node>, Compare> pq;
 	unordered_map<Position, Position> visited; 
 	stack<Position> path;
 };
