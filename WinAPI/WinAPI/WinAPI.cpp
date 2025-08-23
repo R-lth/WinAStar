@@ -5,11 +5,13 @@
 #include "WinAPI.h"
 
 #include "pch.h"
+#include "Game.h"
 
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
+HWND hWnd;                                      // 창 핸들 전역으로 초기화.
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -38,6 +40,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
+    Game game;
+    game.Init(hWnd);
+
     MSG msg = {};
 
     // 기본 메시지 루프입니다:
@@ -50,6 +55,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else 
         {
+            game.Update();
+            game.Render();
         }
     }
 
@@ -102,7 +109,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    RECT windowRect = { 0, 0, GWinSizeX, GWinSizeY }; // 800, 600
    ::AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
 
-   HWND hWnd = CreateWindowW(L"kohmeso", L"Client", WS_OVERLAPPEDWINDOW,
+   hWnd = CreateWindowW(L"kohmeso", L"Client", WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
