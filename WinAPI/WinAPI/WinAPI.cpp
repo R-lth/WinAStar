@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "WinAPI.h"
 
+#include "pch.h"
+
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
@@ -75,7 +77,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_WINAPI));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_WINAPI);
+    wcex.lpszMenuName   = NULL; // 메뉴바 지움
     wcex.lpszClassName  = L"kohmeso";
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -96,6 +98,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
+   // 창 크기 설정
+   RECT windowRect = { 0, 0, GWinSizeX, GWinSizeY }; // 800, 600
+   ::AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
+
    HWND hWnd = CreateWindowW(L"kohmeso", L"Client", WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
@@ -104,8 +110,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+   ::ShowWindow(hWnd, nCmdShow);
+   ::UpdateWindow(hWnd);
 
    return TRUE;
 }
