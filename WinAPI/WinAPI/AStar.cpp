@@ -7,7 +7,8 @@ void AStar::setPath(Position current)
 	while (pos.first != -1 || pos.second != -1)
 	{
 		path.push(pos);
-
+		
+		// 이동
 		unordered_map<Position, Position>::iterator it = visited.find(pos);
 
 		if (it != visited.end()) 

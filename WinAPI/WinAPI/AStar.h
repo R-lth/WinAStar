@@ -11,6 +11,7 @@ using namespace std;
 using Position = std::pair<int, int>;
 
 // TODO. 구조체, 연산자 오버로딩
+// TODO. 사용자 정의 해시
 struct Node
 {
 	Position current;	// 현재 위치
