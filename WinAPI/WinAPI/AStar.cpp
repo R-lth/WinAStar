@@ -1,23 +1,32 @@
 ﻿#include "AStar.h"
 
-// TODO. 경로 추적 수정
 void AStar::setPath(Position current)
 {
 	Position pos = current;
 
 	while (pos.first != -1 || pos.second != -1)
 	{
-		path.push_back(pos);
-		pos = visited[pos];
+		path.push(pos);
+
+		unordered_map<Position, Position>::iterator it = visited.find(pos);
+
+		if (it != visited.end()) 
+		{
+			pos = it->second;
+		}
+		else 
+		{
+			break;
+		}
 	}
 }
 
-vector<Position> AStar::getPath()
+stack<Position> AStar::getPath()
 {
 	return path;
 }
 
-vector<Position> AStar::findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid)
+stack<Position> AStar::findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid)
 {
 	// 초기화
 	Node startNode;

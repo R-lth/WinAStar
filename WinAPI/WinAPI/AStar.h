@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <unordered_map>
+#include <stack>
 
 using namespace std;
 
@@ -24,9 +25,9 @@ class AStar
 public:
 	void setPath(Position current);
 
-	vector<Position> getPath();
+	stack<Position> getPath();
 
-	vector<Position> findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid);
+	stack<Position> findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid);
 
 private:
 	bool isInRange(Position pos, const std::vector<std::vector<int>>& grid);
@@ -44,5 +45,5 @@ private:
 
 	priority_queue<Node, vector<Node>, greater<Node>> pq;
 	unordered_map<Position, Position> visited; 
-	vector<Position> path;
+	stack<Position> path;
 };
