@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <queue>
-#include <unordered_map>
+#include <map>
 #include <stack>
 
 using namespace std;
@@ -56,6 +56,6 @@ private:
 		};
 
 	priority_queue<Node, vector<Node>, Compare> pq;
-	unordered_map<Position, Position> visited; 
+	map<Position, Position> visited; 
 	stack<Position> path;
 };
