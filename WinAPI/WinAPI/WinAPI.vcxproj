@@ -142,7 +142,7 @@
   <ItemGroup>
     <Image Include="aisle.bmp" />
     <Image Include="goal.bmp" />
-    <Image Include="path.bmp" />
+    <Image Include="road.bmp" />
     <Image Include="small.ico" />
     <Image Include="wall.bmp" />
     <Image Include="WinAPI.ico" />

@@ -1,6 +1,6 @@
 ﻿#include "AStar.h"
 
-vector<POINT> AStar::findPath(POINT start, POINT goal, const std::vector<std::vector<int>>& grid)
+vector<POINT> AStar::findPath(POINT start, POINT goal, vector<vector<char>> grid)
 {
 	priority_queue<Node, vector<Node>, Compare> pq;
 	visited.clear();
@@ -33,9 +33,9 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const std::vector<std::ve
 		visited.insert({ node.current, node.parent });
 
 		// 목적지 도착
-		if (IsDestination(start, goal))
+		if (node.current.x == goal.x && node.current.y == goal.y) 
 		{
-			setPath(node.current, visited);
+			setPath(node.current);
 			return path;
 		}
 
@@ -46,7 +46,14 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const std::vector<std::ve
 			int nextX = node.current.x + dir.first.x;
 			POINT next = { nextX, nextY };
 			
-			if (!isInRange(next, grid.size(), grid[0].size()) || grid[nextY][nextX])
+			int row = static_cast<int>(grid.size());
+			int col = static_cast<int>(grid[0].size());
+			if (nextX < 0 || nextX >= col || nextY < 0 || nextY >= row) 
+			{
+				continue;
+			}
+
+			if (grid[nextY][nextX]) 
 			{
 				continue;
 			}
@@ -70,12 +77,7 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const std::vector<std::ve
 	return path;
 }
 
-bool AStar::IsDestination(POINT start, POINT goal)
-{
-	return (start.x == goal.x && start.y && goal.y);
-}
-
-void AStar::setPath(POINT current, map<POINT, POINT>& visited)
+void AStar::setPath(POINT current)
 {
 	POINT point = current;
 	while (point.x != -1 || point.y != -1) 
@@ -83,11 +85,6 @@ void AStar::setPath(POINT current, map<POINT, POINT>& visited)
 		path.push_back(current);
 		point = visited[current];
 	}
-}
-
-bool AStar::isInRange(POINT pos, int row, int column)
-{
-	return (pos.x >= 0 && pos.x < row && pos.y >= 0 && pos.y < column);
 }
 
 float AStar::heuristic(POINT next, POINT goal)
