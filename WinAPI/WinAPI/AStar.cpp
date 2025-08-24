@@ -46,7 +46,7 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const std::vector<std::ve
 			int nextX = node.current.x + dir.first.x;
 			POINT next = { nextX, nextY };
 			
-			if (!isInRange(next, grid.size(), grid[0].size()) || grid[nextY][nextX] == 0)
+			if (!isInRange(next, grid.size(), grid[0].size()) || grid[nextY][nextX])
 			{
 				continue;
 			}

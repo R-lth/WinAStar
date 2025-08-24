@@ -5,14 +5,44 @@
 #include "WinAPI.h"
 
 #include "pch.h"
-#include "Game.h"
+#include "AStar.h"
 
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 HWND hWnd;                                      // 창 핸들 전역으로 초기화.
-Game game;
+
+#pragma region 전역
+AStar aStar;
+POINT start = { 0,0 };
+POINT goal = { 0,0 };
+vector<POINT> path;
+
+// 0 : 길, 1 : 벽
+vector<vector<int>> grid =
+{
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 },
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }, 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }  
+};
+
+const int row = static_cast<int>(grid.size());
+const int column = static_cast<int>(grid[0].size());
+const int cell = 20;
+#pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -40,8 +70,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     {
         return FALSE;
     }
-
-    game.Init(hWnd);
 
     MSG msg = {};
 
@@ -148,14 +176,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_LBUTTONUP:
         {
-            // TODO. 목표 지점 입력 받기
-            int y = HIWORD(lParam);
-            int x = LOWORD(lParam);
-            y /= 40;
-            x /= 40;
-            
-            game.setPos({x, y});
-            game.Update();
+            POINT goal;
+            goal.x = HIWORD(lParam) / cell;
+            goal.y = LOWORD(lParam) / cell;
+
+            if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row)
+            {
+                break;
+            }
+
+            if (grid[goal.y][goal.x] == 1)
+            {
+                break;
+            }
+
+            path = aStar.findPath(start, goal, grid);
+            // 창 업데이트
+            RedrawWindow(hWnd, NULL, NULL, 1);
         }
         break;
     case WM_PAINT:
