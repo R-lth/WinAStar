@@ -16,7 +16,6 @@ struct Node
 	Position parent;
 	float gCost = 0.f;
 	float hCost = 0.f;
-	float f() const { return gCost + hCost; }
 };
 
 // 우선 순위 큐에서 사용자 정의 타입을 오름차순으로 정렬하기 위한, 연산자 오버로딩이다.
@@ -25,7 +24,7 @@ struct Compare
 	// vector의 greater은 내림차순이지만, priority_queue(heap)의 greater은 오름차순이다.
 	bool operator() (const Node& a, const Node& b) const 
 	{
-		return a.f() > b.f(); 
+		return (a.gCost + a.hCost) > (a.gCost + a.hCost);
 	}
 };
 
