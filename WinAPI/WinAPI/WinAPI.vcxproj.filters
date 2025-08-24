@@ -60,5 +60,17 @@
     <Image Include="WinAPI.ico">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="goal.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="path.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="wall.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="aisle.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>
