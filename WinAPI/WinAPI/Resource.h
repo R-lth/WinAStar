@@ -2,6 +2,11 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 WinAPI.rc
 
+#define IDB_AISLE               101
+#define IDB_WALL                102
+#define IDB_GOAL                103
+#define IDB_PATH                104
+
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
