@@ -4,16 +4,14 @@
 #include <queue>
 #include <map>
 #include <stack>
+#include <windef.h>
 
 using namespace std;
 
-// 2D 격자
-using Position = std::pair<int, int>;
-
 struct Node 
 {
-	Position current;
-	Position parent;
+	POINT current;
+	POINT parent;
 	float gCost = 0.f;
 	float hCost = 0.f;
 };
@@ -31,21 +29,22 @@ struct Compare
 class AStar
 {
 public:
-	Position getPos();
-	stack<Position> findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid);
+	vector<POINT> findPath(POINT start, POINT goal, const std::vector<std::vector<int>>& grid);
 
 private:
-	void setPath(stack<Position>& path, map<Position, Position>& visited, Position current);
-	bool isInRange(Position pos, const std::vector<std::vector<int>>& grid);
-	float heuristic(Position current, Position goal);
+	bool IsDestination(POINT start, POINT goal);
+	void setPath(POINT current, map<POINT, POINT>& visited);
+	bool isInRange(POINT pos, int row, int column);
+	float heuristic(POINT next, POINT goal);
 
 private:
-	Position pos;
-	const vector<pair<Position, float>> direction =
+	const vector<pair<POINT, float>> direction =
 		{
 			// 하상우좌 이동.
 			{ {0, 1}, 1.0f}, { {0, -1}, 1.0f}, { {1, 0}, 1.0f}, { {-1, 0}, 1.0f},
 			// 대각선 이동.
 			{ {1, 1}, 1.414f}, { {1, -1}, 1.414f}, { {-1, 1}, 1.414f}, { {-1, -1}, 1.414f}
 		};
+	map<POINT, POINT> visited;
+	vector<POINT> path = {};
 };
