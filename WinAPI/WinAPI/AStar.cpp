@@ -1,12 +1,16 @@
 ﻿#include "AStar.h"
 
-stack<Position> AStar::getPath()
+Position AStar::getPos()
 {
-	return path;
+	return pos;
 }
 
 stack<Position> AStar::findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid)
 {
+	priority_queue<Node, vector<Node>, Compare> pq;
+	map<Position, Position> visited;
+	stack<Position> path;
+
 	// 초기화
 	Node startNode;
 	startNode.current = start;
@@ -20,8 +24,13 @@ stack<Position> AStar::findPath(Position start, Position goal, const std::vector
 	// 탐색
 	while (!pq.empty())
 	{
+		// 최소 값
 		Node node = pq.top();
+		Position current = { node.current.first, node.current.second };
 		pq.pop();
+
+		// TODO. 현재 위치 기록
+		pos = current;
 
 		// 이미 방문
 		if (visited.find(node.current) != visited.end())
@@ -33,10 +42,9 @@ stack<Position> AStar::findPath(Position start, Position goal, const std::vector
 		visited.insert({ node.current, node.parent });
 
 		// 목적지 도착
-		Position current = { node.current.first, node.current.second };
 		if (current == goal)
 		{
-			setPath(current);
+			setPath(path, visited, current);
 			return path;
 		}
 
@@ -72,7 +80,7 @@ stack<Position> AStar::findPath(Position start, Position goal, const std::vector
 	return {};
 }
 
-void AStar::setPath(Position current)
+void AStar::setPath(stack<Position>& path, map<Position, Position>& visited, Position current)
 {
 	Position pos = current;
 

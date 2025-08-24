@@ -29,24 +29,19 @@ struct Compare
 	}
 };
 
-std::priority_queue<Node, std::vector<Node>, Compare> pq;
-
-
 class AStar
 {
 public:
-	stack<Position> getPath();
-
+	Position getPos();
 	stack<Position> findPath(Position start, Position goal, const std::vector<std::vector<int>>& grid);
 
 private:
-	void setPath(Position current);
-
+	void setPath(stack<Position>& path, map<Position, Position>& visited, Position current);
 	bool isInRange(Position pos, const std::vector<std::vector<int>>& grid);
-
 	float heuristic(Position current, Position goal);
 
 private:
+	Position pos;
 	const vector<pair<Position, float>> direction =
 		{
 			// 하상우좌 이동.
@@ -54,8 +49,4 @@ private:
 			// 대각선 이동.
 			{ {1, 1}, 1.414f}, { {1, -1}, 1.414f}, { {-1, 1}, 1.414f}, { {-1, -1}, 1.414f}
 		};
-
-	priority_queue<Node, vector<Node>, Compare> pq;
-	map<Position, Position> visited; 
-	stack<Position> path;
 };

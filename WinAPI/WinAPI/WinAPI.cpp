@@ -12,6 +12,7 @@
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 HWND hWnd;                                      // 창 핸들 전역으로 초기화.
+Game game;
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -40,7 +41,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    Game game;
     game.Init(hWnd);
 
     MSG msg = {};
@@ -52,11 +52,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-        }
-        else 
-        {
-            game.Update();
-            game.Render();
         }
     }
 
@@ -151,11 +146,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+    case WM_LBUTTONUP:
+        {
+            // TODO. 목표 지점 입력 받기
+            int y = HIWORD(lParam);
+            int x = LOWORD(lParam);
+            y /= 40;
+            x /= 40;
+            
+            game.setPos({x, y});
+            game.Update();
+        }
+        break;
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
+            game.Render();
             EndPaint(hWnd, &ps);
         }
         break;
