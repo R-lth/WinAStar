@@ -67,7 +67,7 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>>
 			neighbor.current = next;
 			neighbor.parent = node.current;
 			neighbor.gCost = node.gCost + dir.second;
-			neighbor.hCost = heuristic(start, goal);
+			neighbor.hCost = heuristic(node.current, goal);
 
 			pq.push(neighbor);
 		}
@@ -79,11 +79,11 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>>
 
 void AStar::setPath(POINT current)
 {
-	POINT point = current;
-	while (point.x != -1 || point.y != -1) 
+	POINT course = current;
+	while (course.x != -1 && course.y != -1) 
 	{
 		path.push_back(current);
-		point = visited[current];
+		course = visited[current];
 	}
 }
 

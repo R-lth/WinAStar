@@ -15,9 +15,9 @@ struct Node
 	float hCost;
 };
 
-inline const bool operator< (const POINT& lhs, const POINT& rhs)
+inline const bool operator< (const POINT& a, const POINT& b)
 {
-	return (lhs.x == rhs.x) ? lhs.y < rhs.y : lhs.x < rhs.x;
+	return (a.x == b.x) ? a.y < b.y : a.x < b.x;
 }
 
 struct Compare
@@ -34,7 +34,7 @@ public:
 	vector<POINT> findPath(POINT start, POINT goal, const vector<vector<int>> grid);
 
 private:
-	void setPath(POINT moving);
+	void setPath(POINT character);
 	float heuristic(POINT next, POINT goal);
 
 private:

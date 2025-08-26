@@ -14,6 +14,8 @@ HINSTANCE hInst;                                // 현재 인스턴스입니다.
 HWND hWnd;                                      // 창 핸들 전역으로 초기화.
 
 #pragma region 전역
+RECT rect;
+
 AStar aStar;
 POINT start = { 0,0 };
 POINT goal = { 0,0 };
@@ -131,8 +133,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    // 창 크기 설정
-   RECT windowRect = { 0, 0, GWinSizeX, GWinSizeY }; // 800, 600
-   ::AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
+   rect = { 0, 0, GWinSizeX, GWinSizeY }; // 800, 600
+   ::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
    hWnd = CreateWindowW(L"kohmeso", L"Client", WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
@@ -160,6 +162,23 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    // TODO. 출력 안되는 이유 잡기
+
+    PAINTSTRUCT ps;
+
+    HDC hdc;
+    
+    HDC back;
+    HDC scr;
+
+    HBITMAP bmp;
+    HBITMAP oldBmp;
+
+    HBITMAP Aisle;
+    HBITMAP Brick;
+    HBITMAP Character;
+    HBITMAP Root;
+
     switch (message)
     {
     case WM_COMMAND:
@@ -176,11 +195,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-    // TODO.
-    case WM_CREATE:
-        break;
-    case WM_TIMER:
-        break;
     case WM_LBUTTONUP:
         {
             POINT goal;
@@ -192,7 +206,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            if (grid[goal.y][goal.x] == 1)
+            if (grid[goal.y][goal.x])
             {
                 break;
             }
@@ -204,47 +218,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            hdc = BeginPaint(hWnd, &ps);
 #pragma region 초기화
-            // 메모리 DC, 버블 버퍼링
-            HDC back = CreateCompatibleDC(hdc); // 스케치북. 버퍼 역할
-            HDC scr = CreateCompatibleDC(hdc);  // 제출할 최종 스케치북
-            // 1. 컬러 비트맵
-            // https://learn.microsoft.com/ko-kr/windows/win32/api/wingdi/nf-wingdi-createcompatiblebitmap
-            HBITMAP bmp = CreateCompatibleBitmap(hdc, GWinSizeX, GWinSizeY); // 비트맵 전체 너비, 높이
-            // TODO 2. 
-            // https://soonang2.tistory.com/29
-            HBITMAP oldBmp = (HBITMAP)SelectObject(back, bmp); // DC(back)가 비트맵(bmp)를 선택
-            // 3. 비트맵
-            HBITMAP Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
-            HBITMAP Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
-            // TODO. 이름 변경하기... path와 같은 맥락 
-            HBITMAP Root = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROOT));
-            HBITMAP Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
+            int width = rect.right - rect.left;
+            int height = rect.bottom - rect.top;
+
+            back = CreateCompatibleDC(hdc); 
+            scr = CreateCompatibleDC(hdc); 
+            bmp = CreateCompatibleBitmap(hdc, width, height); 
+            oldBmp = (HBITMAP)SelectObject(scr, bmp);
+
+            Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
+            Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
+            Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
+            Root = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROOT));
 #pragma endregion
 
 #pragma region 그리기
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            //game.Render();
-
-            
-            // 그리드 
-            // https://codaitsme.tistory.com/250
             int x, y = 0;
             for (y = 0; y < row; ++y) 
             {
                 for (x = 0; x < column; ++x) 
                 {
-                    // 비트맵 선택
                     (grid[y][x]) ? SelectObject(back, Brick) : SelectObject(back, Aisle);
 
+                    int posX = x * cell;
+                    int posY = y * cell;
+                    // TODO. int cx, int cy 설정
+                    BitBlt(back, posX, posY, posX + cell, posY + cell, scr, posX, posY, SRCCOPY);
                 }
-                // 비트맵 출력
-                // https://m.blog.naver.com/pkk1113/90161680109
-                int posX = x * cell;
-                int posY = y * cell;
-                BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
             }
             
             /*
@@ -265,27 +268,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
             */
 #pragma endregion
+            // TODO. 최종 그리기
+            BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
 
 #pragma region 해제
-            // 메모리 누수 방지
-            // https://blog.naver.com/znfgkro1/80171458069
-            SelectObject(back, scr);
-            // 해제
+            // TODO. 해제에서 문제 찾기 
+            //
+            SelectObject(scr, oldBmp);
+            //
             DeleteObject(Aisle);
             DeleteObject(Brick);
-            DeleteObject(Root);
             DeleteObject(Character);
-            DeleteObject(bmp);
-            DeleteObject(oldBmp);
+            DeleteObject(Root);
+            //
+            
+            //DeleteObject(bmp);
+            //DeleteObject(oldBmp);
+            //
+            // TODO. ReleaseDC()도 고려하기
+            // https://blog.naver.com/tipsware/220994341959
             DeleteDC(back);
-            DeleteDC(scr);
+            //DeleteDC(scr);
 #pragma endregion
             // 제출
             EndPaint(hWnd, &ps);
         }
         break;
     case WM_DESTROY:
-        PostQuitMessage(0);
+        {
+            PostQuitMessage(0);
+        }
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
