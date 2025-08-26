@@ -35,6 +35,7 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>>
 		// 목적지 도착
 		if (node.current.x == goal.x && node.current.y == goal.y) 
 		{
+			// 실제로 목적지 노드가 들어감. → 역추적
 			setPath(node.current);
 			return path;
 		}
@@ -79,12 +80,25 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>>
 
 void AStar::setPath(POINT current)
 {
-	POINT course = current;
-	while (course.x != -1 && course.y != -1) 
+	POINT backtracking = current;
+
+	while (backtracking.x != -1 && backtracking.y != -1) 
 	{
-		path.push_back(current);
-		course = visited[current];
+		path.push_back(backtracking);
+
+		if (visited.find(backtracking) != visited.end()) 
+		{
+			backtracking = visited[backtracking];
+		}
+		else 
+		{
+			// 문제 상황
+			path.clear();
+			break;
+		}
 	}
+
+	reverse(path.begin(), path.end());
 }
 
 float AStar::heuristic(POINT next, POINT goal)
