@@ -141,8 +141,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="aisle.bmp" />
+    <Image Include="character.bmp" />
     <Image Include="goal.bmp" />
-    <Image Include="road.bmp" />
+    <Image Include="way.bmp" />
     <Image Include="small.ico" />
     <Image Include="wall.bmp" />
     <Image Include="WinAPI.ico" />

@@ -218,20 +218,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HBITMAP Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
             HBITMAP Wall = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_WALL));
             // TODO. 이름 변경하기... path와 같은 맥락 
-            HBITMAP Road = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROAD));
+            HBITMAP Way = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_WAY));
             HBITMAP Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
+            HBITMAP Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
 #pragma endregion
 
 #pragma region 그리기
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
             //game.Render();
+
+            // 그리드 
+            // https://codaitsme.tistory.com/250
+            int x, y = 0;
+            for (y = 0; y < row; ++y) 
+            {
+                for (x = 0; x < column; ++x) 
+                {
+                    // 비트맵 선택
+                    (grid[y][x]) ? SelectObject(back, Wall) : SelectObject(back, Aisle);
+
+                }
+                // 비트맵 출력
+                BitBlt(back, x, y, cell, cell, scr, 0, 0, SRCCOPY);
+            }
+            
+            // 경로 출력
+            for (POINT& pos : path) 
+            {
+                SelectObject(back, Way);
+                BitBlt(back, pos.x, pos.y, cell, cell, scr, 0, 0, SRCCOPY);
+            }
+
+            // 노드 움직임
+
 #pragma endregion
 
 #pragma region 해제
             DeleteObject(Aisle);
             DeleteObject(Wall);
-            DeleteObject(Road);
+            DeleteObject(Way);
             DeleteObject(Goal);
+            DeleteObject(Character);
             DeleteObject(bmp);
             DeleteObject(oldBmp);
             DeleteDC(back);

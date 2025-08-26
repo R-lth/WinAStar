@@ -5,7 +5,8 @@
 #define IDB_AISLE               101
 #define IDB_WALL                102
 #define IDB_GOAL                103
-#define IDB_ROAD                104
+#define IDB_WAY                 104
+#define IDB_CHARACTER           105
 
 #define IDS_APP_TITLE			103
 
