@@ -250,7 +250,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         // 캐릭터 표시
         SelectObject(scr, Character);
-        BitBlt(back, start.x * cell, start.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+        BitBlt(back, goal.x * cell, goal.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
         // 실제 화면 출력
         BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
