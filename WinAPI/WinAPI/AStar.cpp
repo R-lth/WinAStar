@@ -67,7 +67,7 @@ vector<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>>
 			neighbor.current = next;
 			neighbor.parent = node.current;
 			neighbor.gCost = node.gCost + dir.second;
-			neighbor.hCost = heuristic(node.current, goal);
+			neighbor.hCost = heuristic(next, goal);
 
 			pq.push(neighbor);
 		}
@@ -89,7 +89,7 @@ void AStar::setPath(POINT current)
 
 float AStar::heuristic(POINT next, POINT goal)
 {
-	int diffX = next.x - goal.y;
+	int diffX = next.x - goal.x;
 	int diffY = next.y - goal.y;
 	return static_cast<float>(sqrt(diffX * diffX + diffY * diffY));
 }

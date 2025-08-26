@@ -185,17 +185,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONUP:
     {
-        POINT goal;
         goal.x = LOWORD(lParam) / cell;
         goal.y = HIWORD(lParam) / cell;
 
-        if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row)
+        if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row) 
+        {
             break;
-        if (grid[goal.y][goal.x])
+        }
+
+        if (grid[goal.y][goal.x]) 
+        {
             break;
+        }
 
         path = aStar.findPath(start, goal, grid);
-        InvalidateRect(hWnd, NULL, TRUE);
+        RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
     }
     break;
 
