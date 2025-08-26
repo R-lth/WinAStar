@@ -69,7 +69,7 @@
     <Image Include="brick.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="root.bmp">
+    <Image Include="course.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

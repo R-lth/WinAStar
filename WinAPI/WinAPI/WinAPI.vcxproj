@@ -144,7 +144,7 @@
     <Image Include="brick.bmp" />
     <Image Include="character.bmp" />
     <Image Include="small.ico" />
-    <Image Include="root.bmp" />
+    <Image Include="course.bmp" />
     <Image Include="WinAPI.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

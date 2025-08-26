@@ -165,7 +165,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
-    HBITMAP Aisle, Brick, Character, Root;
+    HBITMAP Aisle, Brick, Character, Course;
 
     switch (message)
     {
@@ -224,7 +224,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
         Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
         Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
-        Root = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROOT));
+        Course = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_COURSE));
 
         // 격자 그리기
         for (int y = 0; y < row; ++y)
@@ -238,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 
         // 경로 그리기
-        SelectObject(scr, Root);
+        SelectObject(scr, Course);
 
         if (!path.empty())
         {
@@ -272,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         DeleteObject(Aisle);
         DeleteObject(Brick);
         DeleteObject(Character);
-        DeleteObject(Root);
+        DeleteObject(Course);
         DeleteObject(bmp);
         DeleteObject(connect);
         DeleteDC(back);

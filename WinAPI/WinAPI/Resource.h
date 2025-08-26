@@ -8,7 +8,7 @@
 #define IDB_AISLE               4001
 #define IDB_BRICK               4002
 #define IDB_CHARACTER           4003
-#define IDB_ROOT                4004
+#define IDB_COURSE              4004
 
 #define IDS_APP_TITLE			103
 
