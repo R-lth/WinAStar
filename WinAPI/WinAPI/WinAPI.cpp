@@ -165,7 +165,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
-    HBITMAP Aisle, Brick, Character, Course;
+    HBITMAP Aisle, Brick,Course, Start, Goal;
 
     switch (message)
     {
@@ -182,21 +182,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
-
     case WM_LBUTTONUP:
     {
-        start.x = goal.x;
-        start.y = goal.y;
+        start.x = LOWORD(lParam) / cell;
+        start.y = HIWORD(lParam) / cell;
 
-        goal.x = LOWORD(lParam) / cell;
-        goal.y = HIWORD(lParam) / cell;
-
-        if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row) 
+        if (start.x < 0 || start.x >= column || start.y < 0 || start.y >= row) 
         {
             break;
         }
 
-        if (grid[goal.y][goal.x]) 
+        if (grid[start.y][start.x]) 
         {
             break;
         }
@@ -205,7 +201,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
     }
     break;
+    case WM_RBUTTONUP:
+    {
+        goal.x = LOWORD(lParam) / cell;
+        goal.y = HIWORD(lParam) / cell;
 
+        if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row)
+        {
+            break;
+        }
+
+        if (grid[goal.y][goal.x])
+        {
+            break;
+        }
+
+        path = aStar.findPath(start, goal, grid);
+        RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+    }
+    break;
     case WM_PAINT:
     {
         // 앞면 버퍼. 실제 화면
@@ -226,8 +240,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 비트맵 로드
         Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
         Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
-        Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
+        //Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
         Course = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_COURSE));
+        Start = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_START));
+        Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
 
         // 격자 그리기
         for (int y = 0; y < row; ++y)
@@ -251,8 +267,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
+        // 시작 위치 표시
+        SelectObject(scr, Start);
+        BitBlt(back, start.x * cell, start.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
         // 캐릭터 표시
-        SelectObject(scr, Character);
+        SelectObject(scr, Goal);
         BitBlt(back, goal.x * cell, goal.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
         // 실제 화면 출력
@@ -274,8 +293,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 
         DeleteObject(Aisle);
         DeleteObject(Brick);
-        DeleteObject(Character);
         DeleteObject(Course);
+        DeleteObject(Start);
+        DeleteObject(Goal);
         DeleteObject(bmp);
         DeleteObject(connect);
         DeleteDC(back);
@@ -285,11 +305,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         EndPaint(hWnd, &ps);
     }
     break;
-
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
-
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

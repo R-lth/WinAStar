@@ -143,6 +143,8 @@
     <Image Include="aisle.bmp" />
     <Image Include="brick.bmp" />
     <Image Include="character.bmp" />
+    <Image Include="goal.bmp" />
+    <Image Include="start.bmp" />
     <Image Include="small.ico" />
     <Image Include="course.bmp" />
     <Image Include="WinAPI.ico" />
