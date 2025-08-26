@@ -1,6 +1,6 @@
 ﻿#include "AStar.h"
 
-vector<POINT> AStar::findPath(POINT start, POINT goal, vector<vector<char>> grid)
+vector<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>> grid)
 {
 	priority_queue<Node, vector<Node>, Compare> pq;
 	visited.clear();

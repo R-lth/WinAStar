@@ -31,7 +31,7 @@ struct Compare
 class AStar
 {
 public:
-	vector<POINT> findPath(POINT start, POINT goal, vector<vector<char>> grid);
+	vector<POINT> findPath(POINT start, POINT goal, const vector<vector<int>> grid);
 
 private:
 	void setPath(POINT moving);

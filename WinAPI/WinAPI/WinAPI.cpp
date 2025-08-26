@@ -174,6 +174,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+    // TODO.
+    case WM_CREATE:
+        break;
+    case WM_TIMER:
+        break;
     case WM_LBUTTONUP:
         {
             POINT goal;
@@ -199,8 +204,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
+#pragma region 초기화
+            // 메모리 DC, 버블 버퍼링
+            HDC back = CreateCompatibleDC(hdc); // 스케치북
+            HDC scr = CreateCompatibleDC(hdc);  // 제출할 최종 스케치북
+            // 1. 컬러 비트맵
+            // https://learn.microsoft.com/ko-kr/windows/win32/api/wingdi/nf-wingdi-createcompatiblebitmap
+            HBITMAP bmp = CreateCompatibleBitmap(hdc, GWinSizeX, GWinSizeY); // 비트맵 전체 너비, 높이
+            // TODO 2. 
+            // https://soonang2.tistory.com/29
+            HBITMAP oldBmp = (HBITMAP)SelectObject(back, bmp);
+            // 3. 비트맵
+            HBITMAP Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
+            HBITMAP Wall = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_WALL));
+            // TODO. 이름 변경하기... path와 같은 맥락 
+            HBITMAP Road = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROAD));
+            HBITMAP Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
+#pragma endregion
+
+#pragma region 그리기
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            game.Render();
+            //game.Render();
+#pragma endregion
+
+#pragma region 해제
+            DeleteObject(Aisle);
+            DeleteObject(Wall);
+            DeleteObject(Road);
+            DeleteObject(Goal);
+            DeleteObject(bmp);
+            DeleteObject(oldBmp);
+            DeleteDC(back);
+            DeleteDC(scr);
+#pragma endregion
+            // 제출
             EndPaint(hWnd, &ps);
         }
         break;
