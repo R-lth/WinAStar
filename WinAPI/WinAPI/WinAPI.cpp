@@ -185,6 +185,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONUP:
     {
+        start.x = goal.x;
+        start.y = goal.y;
+
         goal.x = LOWORD(lParam) / cell;
         goal.y = HIWORD(lParam) / cell;
 
