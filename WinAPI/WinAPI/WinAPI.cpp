@@ -50,6 +50,8 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+
+// https://m.blog.naver.com/pkk1113/90161680109
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -206,20 +208,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
 #pragma region 초기화
             // 메모리 DC, 버블 버퍼링
-            HDC back = CreateCompatibleDC(hdc); // 스케치북
+            HDC back = CreateCompatibleDC(hdc); // 스케치북. 버퍼 역할
             HDC scr = CreateCompatibleDC(hdc);  // 제출할 최종 스케치북
             // 1. 컬러 비트맵
             // https://learn.microsoft.com/ko-kr/windows/win32/api/wingdi/nf-wingdi-createcompatiblebitmap
             HBITMAP bmp = CreateCompatibleBitmap(hdc, GWinSizeX, GWinSizeY); // 비트맵 전체 너비, 높이
             // TODO 2. 
             // https://soonang2.tistory.com/29
-            HBITMAP oldBmp = (HBITMAP)SelectObject(back, bmp);
+            HBITMAP oldBmp = (HBITMAP)SelectObject(back, bmp); // DC(back)가 비트맵(bmp)를 선택
             // 3. 비트맵
             HBITMAP Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
-            HBITMAP Wall = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_WALL));
+            HBITMAP Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
             // TODO. 이름 변경하기... path와 같은 맥락 
-            HBITMAP Way = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_WAY));
-            HBITMAP Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
+            HBITMAP Root = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROOT));
             HBITMAP Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
 #pragma endregion
 
@@ -227,6 +228,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
             //game.Render();
 
+            
             // 그리드 
             // https://codaitsme.tistory.com/250
             int x, y = 0;
@@ -235,29 +237,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 for (x = 0; x < column; ++x) 
                 {
                     // 비트맵 선택
-                    (grid[y][x]) ? SelectObject(back, Wall) : SelectObject(back, Aisle);
+                    (grid[y][x]) ? SelectObject(back, Brick) : SelectObject(back, Aisle);
 
                 }
                 // 비트맵 출력
-                BitBlt(back, x, y, cell, cell, scr, 0, 0, SRCCOPY);
+                // https://m.blog.naver.com/pkk1113/90161680109
+                int posX = x * cell;
+                int posY = y * cell;
+                BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
             }
             
+            /*
             // 경로 출력
             for (POINT& pos : path) 
             {
-                SelectObject(back, Way);
-                BitBlt(back, pos.x, pos.y, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(back, Root);
+                int posX = pos.x * cell;
+                int posY = pos.y * cell;
+                BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
             // 노드 움직임
+            int posX = goal.x * cell;
+            int posY = goal.y * cell;
 
+            SelectObject(back, Character);
+            BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
+            */
 #pragma endregion
 
 #pragma region 해제
+            // 메모리 누수 방지
+            // https://blog.naver.com/znfgkro1/80171458069
+            SelectObject(back, scr);
+            // 해제
             DeleteObject(Aisle);
-            DeleteObject(Wall);
-            DeleteObject(Way);
-            DeleteObject(Goal);
+            DeleteObject(Brick);
+            DeleteObject(Root);
             DeleteObject(Character);
             DeleteObject(bmp);
             DeleteObject(oldBmp);
