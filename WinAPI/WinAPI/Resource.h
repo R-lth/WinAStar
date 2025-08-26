@@ -2,10 +2,13 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 WinAPI.rc
 
-#define IDB_AISLE               101
-#define IDB_BRICK               102
-#define IDB_ROOT                103
-#define IDB_CHARACTER           104
+// 상수 중복 문제
+// https://nagie.tistory.com/117
+
+#define IDB_AISLE               4001
+#define IDB_BRICK               4002
+#define IDB_CHARACTER           4003
+#define IDB_ROOT                4004
 
 #define IDS_APP_TITLE			103
 
