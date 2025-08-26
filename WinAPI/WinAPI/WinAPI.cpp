@@ -162,145 +162,131 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    // TODO. 출력 안되는 이유 잡기
-
     PAINTSTRUCT ps;
-
-    HDC hdc;
-    
-    HDC back;
-    HDC scr;
-
-    HBITMAP bmp;
-    HBITMAP oldBmp;
-
-    HBITMAP Aisle;
-    HBITMAP Brick;
-    HBITMAP Character;
-    HBITMAP Root;
+    HDC hdc, back, scr;
+    HBITMAP bmp, connect;
+    HBITMAP Aisle, Brick, Character, Root;
 
     switch (message)
     {
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            // 메뉴 선택을 구문 분석합니다:
-            switch (wmId)
-            {
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
-        break;
+    }
+    break;
+
     case WM_LBUTTONUP:
-        {
-            POINT goal;
-            goal.x = HIWORD(lParam) / cell;
-            goal.y = LOWORD(lParam) / cell;
+    {
+        POINT goal;
+        goal.x = LOWORD(lParam) / cell;
+        goal.y = HIWORD(lParam) / cell;
 
-            if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row)
-            {
-                break;
-            }
+        if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row)
+            break;
+        if (grid[goal.y][goal.x])
+            break;
 
-            if (grid[goal.y][goal.x])
-            {
-                break;
-            }
+        path = aStar.findPath(start, goal, grid);
+        InvalidateRect(hWnd, NULL, TRUE);
+    }
+    break;
 
-            path = aStar.findPath(start, goal, grid);
-            // 창 업데이트
-            RedrawWindow(hWnd, NULL, NULL, 1);
-        }
-        break;
     case WM_PAINT:
+    {
+        // 앞면 버퍼. 실제 화면
+        hdc = BeginPaint(hWnd, &ps);
+
+#pragma region Render
+        int width = rect.right - rect.left;
+        int height = rect.bottom - rect.top;
+
+        // 실제 화면과 호환되는 후면 버퍼. 실제 화면에 제출할 DC 
+        back = CreateCompatibleDC(hdc);
+        bmp = CreateCompatibleBitmap(hdc, width, height); // dc와 호환되는 비트맵
+        connect = (HBITMAP)SelectObject(back, bmp);
+
+        // 리소스 DC 생성
+        scr = CreateCompatibleDC(hdc);
+
+        // 비트맵 로드
+        Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
+        Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
+        Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
+        Root = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROOT));
+
+        // 격자 그리기
+        for (int y = 0; y < row; ++y)
         {
-            hdc = BeginPaint(hWnd, &ps);
-#pragma region 초기화
-            int width = rect.right - rect.left;
-            int height = rect.bottom - rect.top;
-
-            back = CreateCompatibleDC(hdc); 
-            scr = CreateCompatibleDC(hdc); 
-            bmp = CreateCompatibleBitmap(hdc, width, height); 
-            oldBmp = (HBITMAP)SelectObject(scr, bmp);
-
-            Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
-            Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
-            Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
-            Root = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_ROOT));
-#pragma endregion
-
-#pragma region 그리기
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
-            int x, y = 0;
-            for (y = 0; y < row; ++y) 
+            for (int x = 0; x < column; ++x)
             {
-                for (x = 0; x < column; ++x) 
-                {
-                    (grid[y][x]) ? SelectObject(back, Brick) : SelectObject(back, Aisle);
-
-                    int posX = x * cell;
-                    int posY = y * cell;
-                    // TODO. int cx, int cy 설정
-                    BitBlt(back, posX, posY, posX + cell, posY + cell, scr, posX, posY, SRCCOPY);
-                }
+                HBITMAP tile = grid[y][x] ? Brick : Aisle;
+                SelectObject(scr, tile);
+                BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
-            
-            /*
-            // 경로 출력
-            for (POINT& pos : path) 
-            {
-                SelectObject(back, Root);
-                int posX = pos.x * cell;
-                int posY = pos.y * cell;
-                BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
-            }
-
-            // 노드 움직임
-            int posX = goal.x * cell;
-            int posY = goal.y * cell;
-
-            SelectObject(back, Character);
-            BitBlt(back, posX, posY, cell, cell, scr, 0, 0, SRCCOPY);
-            */
-#pragma endregion
-            // TODO. 최종 그리기
-            BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
-
-#pragma region 해제
-            // TODO. 해제에서 문제 찾기 
-            //
-            SelectObject(scr, oldBmp);
-            //
-            DeleteObject(Aisle);
-            DeleteObject(Brick);
-            DeleteObject(Character);
-            DeleteObject(Root);
-            //
-            
-            //DeleteObject(bmp);
-            //DeleteObject(oldBmp);
-            //
-            // TODO. ReleaseDC()도 고려하기
-            // https://blog.naver.com/tipsware/220994341959
-            DeleteDC(back);
-            //DeleteDC(scr);
-#pragma endregion
-            // 제출
-            EndPaint(hWnd, &ps);
         }
-        break;
+
+        // 경로 그리기
+        SelectObject(scr, Root);
+
+        if (!path.empty())
+        {
+            for (POINT& pos : path)
+            {
+                BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            }
+        }
+
+        // 캐릭터 표시
+        SelectObject(scr, Character);
+        BitBlt(back, start.x * cell, start.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+
+        // 실제 화면 출력
+        BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
+#pragma endregion
+        // 해제
+        /*
+         * DC는 항상 어떤 GDI 객체를 선택하고 있어야 함.
+         * 복원 순서
+         * ① SelectObject(back, bmp);	  후면 버퍼 DC에 비트맵 붙이기
+         * ② 그리기
+         * ③ SelectObject(back, connect); 원래대로 복원
+         *
+         * ① connect = (HBITMAP)SelectObject(back, bmp);
+         * → 기존에 back DC에 선택돼 있던 GDI 객체를 connect에 저장해 놓고, bmp를 back DC에 선택해서 그릴 수 있게 한다.
+         * → select는 기존 반환값을 전달하되, 정작 새로운 GDI 객체를 선택하게 한다.
+        */
+        SelectObject(back, connect);
+        // 
+        DeleteObject(Aisle);
+        DeleteObject(Brick);
+        DeleteObject(Character);
+        DeleteObject(Root);
+        DeleteObject(bmp);
+        DeleteObject(connect);
+        DeleteDC(back);
+        DeleteDC(scr);
+
+        // 실제 화면에 최종 제출
+        EndPaint(hWnd, &ps);
+    }
+    break;
+
     case WM_DESTROY:
-        {
-            PostQuitMessage(0);
-        }
+        PostQuitMessage(0);
         break;
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
+
     return 0;
 }
+
