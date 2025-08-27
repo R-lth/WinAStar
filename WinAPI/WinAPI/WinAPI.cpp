@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "WinAPI.h"
 
+#include <unordered_map>
 #include <random>
 
 #include "pch.h"
@@ -19,9 +20,9 @@ HWND hWnd;                                      // 창 핸들 전역으로 초�
 RECT rect;
 
 AStar aStar;
-POINT start = { 0,0 };
-POINT goal = { 0,0 };
-vector<POINT> path;
+POINT player = { 10,10 };
+// 키 : 몬스터 ID, 값 : 몬스터 위치
+unordered_map<int, vector<POINT>> pathInfo;
 
 // 0 : 길, 1 : 벽
 vector<vector<int>> grid(20, vector<int>(20, 0));
@@ -30,7 +31,7 @@ const int row = static_cast<int>(grid.size());
 const int column = static_cast<int>(grid[0].size());
 const int cell = 20;
 
-vector<POINT> monsterPos = {};
+vector<POINT> spawnMonster;
 
 bool IsSpawnPositionValid(POINT pos) 
 {
@@ -54,7 +55,7 @@ bool IsPlayerMoveValid(POINT pos)
         return false;
     }
 
-    for (const POINT& monster : monsterPos)
+    for (const POINT& monster : spawnMonster)
     {
         if (pos.x == monster.x && pos.y == monster.y)
         {
@@ -72,8 +73,6 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
-
-// https://m.blog.naver.com/pkk1113/90161680109
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -233,14 +232,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_TIMER:
         {
-            const vector<POINT> center = 
-            { 
+            const vector<POINT> center =
+            {
                 {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
                 {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
                 {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
                 {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
             };
-            
+
             srand(time(NULL));
 
             int i = rand() % center.size();
@@ -251,37 +250,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            monsterPos.push_back(spawn);
+            spawnMonster.push_back(spawn);
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
     break;
     case WM_LBUTTONUP:
     {
-        start.x = LOWORD(lParam) / cell;
-        start.y = HIWORD(lParam) / cell;
+        player.x = LOWORD(lParam) / cell;
+        player.y = HIWORD(lParam) / cell;
 
-        if (!IsPlayerMoveValid({ start.x, start.y })) 
+        if (!IsPlayerMoveValid(player))
         {
             break;
         }
 
-        path = aStar.findPath(start, goal, grid);
-        RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
-    }
-    break;
-    case WM_RBUTTONUP:
-    {
-        goal.x = LOWORD(lParam) / cell;
-        goal.y = HIWORD(lParam) / cell;
-
-        if (!IsPlayerMoveValid({ start.x, start.y }))
+        // 경로 갱신
+        for (int i = 0; i < spawnMonster.size(); ++i) 
         {
-            break;
-        }
+            POINT monster = spawnMonster[i];
+            vector<POINT> path = aStar.findPath(monster, player, grid);
 
-        path = aStar.findPath(start, goal, grid);
-        RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+            if (pathInfo.find(i) != pathInfo.end()) 
+            {
+                pathInfo[i] = path;
+            }
+            else 
+            {
+                pathInfo.insert({ i, path });
+            }
+
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+        }
     }
     break;
     case WM_PAINT:
@@ -301,9 +301,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 비트맵 로드
         Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
         Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
+        // 총알 = 몬스터
         Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
-        Course = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_COURSE));
-        Start = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_START));
+        // 플레이어
         Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
 
         // 격자 그리기
@@ -317,32 +317,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        // 경로 그리기
-        SelectObject(scr, Course);
-
-        if (!path.empty())
+        // 장애물 표시
+        SelectObject(scr, Character);
+        for (const pair<int, vector<POINT>>& path : pathInfo) 
         {
-            for (POINT& pos : path)
+            for (const POINT& pos : path.second) 
             {
-                BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
+                // TODO. 장애물 시간 차로 그리고 지우기 
+                // 근데 여기서 슬립 때리면 문제 상황이 발생할 것 같음.
+                // Sleep();
             }
         }
 
-        // 시작 위치 표시
-        SelectObject(scr, Start);
-        BitBlt(back, start.x * cell, start.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-        // 캐릭터 표시
-        SelectObject(scr, Goal);
-        BitBlt(back, goal.x * cell, goal.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-
         // TODO. 플레이어 크기를 40*40으로 변경 후, 위치 지정 및 이동 고려하기
-        // TODO. 장애물 이동
-        // 장애물 그리기
-        SelectObject(scr, Character);
-        for (const POINT& pos : monsterPos) 
-        {
-            BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-        }
+        // 플레이어 표시
+        SelectObject(scr, Goal);
+        BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
         // 실제 화면 출력
         BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
@@ -363,9 +354,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 
         DeleteObject(Aisle);
         DeleteObject(Brick);
-        DeleteObject(Course);
         DeleteObject(Character);
-        DeleteObject(Start);
         DeleteObject(Goal);
         //
         DeleteObject(bmp);
