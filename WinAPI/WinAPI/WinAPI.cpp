@@ -5,6 +5,7 @@
 #include "WinAPI.h"
 
 #include <unordered_map>
+#include <queue>
 #include <random>
 
 #include "pch.h"
@@ -21,8 +22,8 @@ RECT rect;
 
 AStar aStar;
 POINT player = { 10,10 };
-// 키 : 몬스터 ID, 값 : 몬스터 위치
-unordered_map<int, vector<POINT>> pathInfo;
+// index : 몬스터 ID, 값 : 몬스터 위치
+vector<vector<POINT>> pathInfo;
 
 // 0 : 길, 1 : 벽
 vector<vector<int>> grid(20, vector<int>(20, 0));
@@ -271,13 +272,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             POINT monster = spawnMonster[i];
             vector<POINT> path = aStar.findPath(monster, player, grid);
 
-            if (pathInfo.find(i) != pathInfo.end()) 
+            if (i < pathInfo.size()) 
             {
                 pathInfo[i] = path;
             }
             else 
             {
-                pathInfo.insert({ i, path });
+                pathInfo.emplace_back(path);
             }
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
@@ -319,14 +320,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         // 장애물 표시
         SelectObject(scr, Character);
-        for (const pair<int, vector<POINT>>& path : pathInfo) 
+
+        // TODO. 장애물 시간 차로 그림. > 이전 위치 지우기
+                // 0ㅐㅏ 
+                // 문제 상황1. 현재 로직대로면 몬스터 하나 다 움직이고 나서야 다음 몬스터 움직임 ?? 
+                //  각 몬스터마다 동시에 한 칸씩 움직여야 함...3
+                // 
+                // 2차원으로
+                // 각 path의 0번째 열부터 들어가서 나가야 하니까 → 열은 선입선출로 Q를 사용하는 게 맞을 것 같음.
+                // 근데 그 각 열을 관리하는 것도 q여야 하는게 각각 열 개수가 다르니까....
+                // // 그리고 pop()해서 바로 비우자.873421
+                // queue<queue<POINT>> move;
+                // 
+                // 문제 상황2. 근데 여기서 슬립 때리면 문제 상황이 발생할 것 같음 ??
+                // 
+                // Sleep();
+
+        for (const vector<POINT>& path : pathInfo) 
         {
-            for (const POINT& pos : path.second) 
+            for (const POINT& pos : path)
             {
                 BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
-                // TODO. 장애물 시간 차로 그리고 지우기 
-                // 근데 여기서 슬립 때리면 문제 상황이 발생할 것 같음.
-                // Sleep();
             }
         }
 
