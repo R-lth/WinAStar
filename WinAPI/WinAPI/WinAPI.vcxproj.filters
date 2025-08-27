@@ -60,22 +60,31 @@
     <Image Include="WinAPI.ico">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="aisle.bmp">
+    <Image Include="start.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="character.bmp">
+    <Image Include="aisle.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="brick.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="course.bmp">
+    <Image Include="character1.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="start.bmp">
+    <Image Include="character2.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="goal.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goalleft.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goalright.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="goalup.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

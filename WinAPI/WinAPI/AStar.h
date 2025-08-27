@@ -44,6 +44,7 @@ private:
 		{ {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
 	};
 
+
 	vector<POINT> path = {};
 	map<POINT, POINT> visited;
 };

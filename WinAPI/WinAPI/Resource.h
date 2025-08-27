@@ -7,10 +7,13 @@
 
 #define IDB_AISLE               4001
 #define IDB_BRICK               4002
-#define IDB_CHARACTER           4003
-#define IDB_COURSE              4004
-#define IDB_START               4005
-#define IDB_GOAL                4006
+#define IDB_CHARACTER1          4004
+#define IDB_CHARACTER2          4005
+#define IDB_START               4006
+#define IDB_GOAL                4007
+#define IDB_GOALLEFT            4008
+#define IDB_GOALRIGHT           4009
+#define IDB_GOALUP              4010
 
 #define IDS_APP_TITLE			103
 

@@ -140,13 +140,16 @@
     <ResourceCompile Include="WinAPI.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="aisle.bmp" />
-    <Image Include="brick.bmp" />
-    <Image Include="character.bmp" />
     <Image Include="goal.bmp" />
+    <Image Include="character1.bmp" />
+    <Image Include="brick.bmp" />
+    <Image Include="character2.bmp" />
+    <Image Include="aisle.bmp" />
+    <Image Include="goalleft.bmp" />
+    <Image Include="goalright.bmp" />
+    <Image Include="goalup.bmp" />
     <Image Include="start.bmp" />
     <Image Include="small.ico" />
-    <Image Include="course.bmp" />
     <Image Include="WinAPI.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

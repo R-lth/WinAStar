@@ -34,7 +34,10 @@ const int cell = 20;
 
 vector<POINT> monsterPos;
 
-bool IsSpawnPositionValid(POINT pos) 
+// 인덱스 = 몬스터 id, 값 = 몬스터 step  
+vector<int> monsterStep;
+
+bool playerCanMove(POINT pos)
 {
     if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
     {
@@ -42,16 +45,6 @@ bool IsSpawnPositionValid(POINT pos)
     }
 
     if (grid[pos.y][pos.x])
-    {
-        return false;
-    }
-
-    return true;
-} 
-
-bool IsPlayerMoveValid(POINT pos) 
-{
-    if (!IsSpawnPositionValid(pos)) 
     {
         return false;
     }
@@ -66,6 +59,47 @@ bool IsPlayerMoveValid(POINT pos)
 
     return true;
 }
+
+bool monsterCanMove(int id, POINT pos)
+{
+    if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
+    {
+        return false;
+    }
+
+    if (grid[pos.y][pos.x])
+    {
+        return false;
+    }
+
+    for (int i = 0; i < monsterPos.size(); ++i)
+    {
+        if (id == i) 
+        {
+            continue;
+        }
+
+        if (pos.x == monsterPos[i].x && pos.y == monsterPos[i].y)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int nextStep(int pathSize) 
+{
+    return 0;
+    // 0 : 기존 몬스터 자리, 1 : 이동
+    //return (pathSize > 1) ? 1 : 0;
+}
+
+bool mFilp = false;
+
+bool pHoriz = false;
+bool pFilp = false;
+bool pUp = false;
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -193,25 +227,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
-    HBITMAP Aisle, Brick,Course, Character, Start, Goal;
+    HBITMAP Aisle, Brick, Character1, Character2, Start, Goal, GoalLeft, GoalRight, GoalUp;
 
     switch (message)
     {
-    case WM_COMMAND:
-    {
-        int wmId = LOWORD(wParam);
-        switch (wmId)
+        case WM_COMMAND:
         {
-        case IDM_EXIT:
-            DestroyWindow(hWnd);
-            break;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
+            int wmId = LOWORD(wParam);
+            switch (wmId)
+            {
+            case IDM_EXIT:
+                DestroyWindow(hWnd);
+                break;
+            default:
+                return DefWindowProc(hWnd, message, wParam, lParam);
+            }
         }
-    }
-    break;
-    case WM_CREATE:
+        break;
+        case WM_CREATE:
         {
+            // 화면 크기
+            width = rect.right - rect.left;
+            height = rect.bottom - rect.top;
+
             // 그리드 설정
             for (int i = 0; i < 20; ++i)
             {
@@ -220,8 +258,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 grid[i][0] = 1;
                 grid[i][19] = 1;
             }
-         
-            for (int i = 7; i < 13; ++i) 
+
+            for (int i = 7; i < 13; ++i)
             {
                 grid[0][i] = 0;
                 grid[19][i] = 0;
@@ -229,172 +267,253 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 grid[i][19] = 0;
             }
 
-            // 화면 크기
-            width = rect.right - rect.left;
-            height = rect.bottom - rect.top;
-            
+            // 그리드 관련 랜덤 값을 위한 함수
+            srand(time(NULL));
+
             // 타이머
-            SetTimer(hWnd, 1, 1000, NULL);
-            SetTimer(hWnd, 2, 3000, NULL);
+            SetTimer(hWnd, 1, 150 * 2, NULL);
+            SetTimer(hWnd, 2, 1500, NULL);
         }
-    break;
-    case WM_TIMER:
+        break;
+        case WM_TIMER:
         {
             switch (wParam)
             {
             case 1:
+            {
+                // 몬스터 위치 자동 갱신
+                int monsterCnt = static_cast<int>(monsterPos.size());
+                for (int id = 0; id < monsterCnt; ++id) 
                 {
-                    // TODO. 1초마다 monsterPos
-                    
-                }
-                break;
-            case 2:
-                {
-                    const vector<POINT> center =
+                    int monsterStepEnd = static_cast<int>(pathInfo.size());
+                    if (monsterStepEnd == 0 || id >= monsterStepEnd)
                     {
-                        {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
-                        {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
-                        {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
-                        {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
-                    };
-
-                    srand(time(NULL));
-
-                    int i = rand() % center.size();
-
-                    POINT spawn = center[i];
-                    if (!IsSpawnPositionValid(spawn))
-                    {
-                        break;
+                        continue;
                     }
 
-                    monsterPos.push_back(spawn);
+                    POINT step = pathInfo[id][monsterStep[id]];
+                    if (monsterStep[id] < monsterStepEnd && monsterCanMove(id, step))
+                    {
+                        monsterPos[id] = step;
+                        ++monsterStep[id];
+                        mFilp = !mFilp;
+                    }
+                    else
+                    {
+                        // 장애물. 경로 갱신
+                        vector<POINT> path = aStar.findPath(monsterPos[id], player, grid);
+                        pathInfo[id] = path;
+                        monsterStep[id] = 0;     
+                    }
                 }
+            }
+                break;
+            case 2:
+            {
+                const vector<POINT> center =
+                {
+                    {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
+                    {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
+                    {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
+                    {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
+                };
+
+                int i = rand() % center.size();
+
+                POINT spawn = center[i];
+                if (!playerCanMove(spawn))
+                {
+                    break;
+                }
+
+                monsterPos.push_back(spawn);
+                vector<POINT> path = aStar.findPath(spawn, player, grid);
+                pathInfo.emplace_back(path);
+                monsterStep.push_back((path.size() > 1) ? 1 : 0);
+            }
                 break;
             default:
                 break;
             }
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+            
         }
-    break;
-    case WM_LBUTTONUP:
-    {
-        player.x = LOWORD(lParam) / cell;
-        player.y = HIWORD(lParam) / cell;
-
-        if (!IsPlayerMoveValid(player))
+        break;
+        case WM_KEYDOWN:  
         {
-            break;
-        }
-
-        // 경로 갱신
-        for (int i = 0; i < monsterPos.size(); ++i) 
-        {
-            POINT monster = monsterPos[i];
-            vector<POINT> path = aStar.findPath(monster, player, grid);
-
-            if (i < pathInfo.size()) 
+            POINT next = player;
+            switch (wParam)
             {
-                pathInfo[i] = path;
+            case 'A':
+            {
+                next.x -= 1;
+                pHoriz = true;
+                pFilp = !pFilp;
+            }
+                break;
+            case 'D':
+            {
+                next.x += 1;
+                pHoriz = true;
+                pFilp = !pFilp;
+            }
+            break;
+            case 'W':
+            {
+                next.y -= 1;
+                pHoriz = false;
+                pUp = true;
+            }
+            break;
+            case 'S': 
+            {
+                next.y += 1;
+                pHoriz = false;
+                pUp = false;
+            }
+                break;
+            
+            default: 
+                break;
+            }
+
+            if (!playerCanMove(player) || !playerCanMove(next))
+            {
+                break;
+            }
+
+            player = next;
+
+            // 경로 갱신
+            for (int i = 0; i < monsterPos.size(); ++i)
+            {
+                POINT monster = monsterPos[i];
+                vector<POINT> path = aStar.findPath(monster, player, grid);
+
+                if (i < pathInfo.size())
+                {
+                    pathInfo[i] = path;
+                }
+                else
+                {
+                    pathInfo.emplace_back(path);
+                }
+
+                RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+            }
+        }
+        break;
+
+        case WM_LBUTTONUP:
+        {
+            // TODO. 총알
+        }
+        break;
+        case WM_PAINT:
+        {
+            // 앞면 버퍼. 실제 화면
+            hdc = BeginPaint(hWnd, &ps);
+
+#pragma region Render
+            // 실제 화면과 호환되는 후면 버퍼. 실제 화면에 제출할 DC 
+            back = CreateCompatibleDC(hdc);
+            bmp = CreateCompatibleBitmap(hdc, width, height); // dc와 호환되는 비트맵
+            connect = (HBITMAP)SelectObject(back, bmp);
+
+            // 리소스 DC 생성
+            scr = CreateCompatibleDC(hdc);
+
+            // 비트맵 로드
+            Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
+            Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
+            // 총알 = 몬스터
+            Character1 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER1));
+            Character2 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER2));
+            // 플레이어
+            Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
+            GoalLeft = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALLEFT));
+            GoalRight = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALRIGHT));
+            GoalUp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALUP));
+
+            // 격자 그리기
+            for (int y = 0; y < row; ++y)
+            {
+                for (int x = 0; x < column; ++x)
+                {
+                    HBITMAP tile = grid[y][x] ? Brick : Aisle;
+                    SelectObject(scr, tile);
+                    BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
+            }
+
+            // 플레이어 표시
+            if (pHoriz) 
+            {
+                HBITMAP pSprite = pFilp ? GoalLeft : GoalRight;
+                SelectObject(scr, pSprite);
             }
             else 
             {
-                pathInfo.emplace_back(path);
+                HBITMAP pSprite = pUp ? GoalUp : Goal;
+                SelectObject(scr, pSprite);
             }
+            BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
-            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
-        }
-    }
-    break;
-    case WM_PAINT:
-    {
-        // 앞면 버퍼. 실제 화면
-        hdc = BeginPaint(hWnd, &ps);
-
-#pragma region Render
-        // 실제 화면과 호환되는 후면 버퍼. 실제 화면에 제출할 DC 
-        back = CreateCompatibleDC(hdc);
-        bmp = CreateCompatibleBitmap(hdc, width, height); // dc와 호환되는 비트맵
-        connect = (HBITMAP)SelectObject(back, bmp);
-
-        // 리소스 DC 생성
-        scr = CreateCompatibleDC(hdc);
-
-        // 비트맵 로드
-        Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
-        Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
-        // 총알 = 몬스터
-        Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
-        // 플레이어
-        Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
-
-        // 격자 그리기
-        for (int y = 0; y < row; ++y)
-        {
-            for (int x = 0; x < column; ++x)
+            // 장애물 표시
+            HBITMAP mSprite = mFilp ? Character1 : Character2;  
+            SelectObject(scr, mSprite);
+            for (const POINT& pos : monsterPos) 
             {
-                HBITMAP tile = grid[y][x] ? Brick : Aisle;
-                SelectObject(scr, tile);
-                BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
-        }
 
-        // TODO. 플레이어 크기를 40*40으로 변경 후, 위치 지정 및 이동 고려하기
-        // 플레이어 표시
-        SelectObject(scr, Goal);
-        BitBlt(back, player.x* cell, player.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
-
-        // 장애물 표시
-        SelectObject(scr, Character);
-        for (const POINT& pos : monsterPos) 
-        {
-            BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
-        }
-
-        // 실제 화면 출력
-        BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
+            // 실제 화면 출력
+            BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
 #pragma endregion
-        // 해제
-        /*
-         * DC는 항상 어떤 GDI 객체를 선택하고 있어야 함.
-         * 복원 순서
-         * ① SelectObject(back, bmp);	  후면 버퍼 DC에 비트맵 붙이기
-         * ② 그리기
-         * ③ SelectObject(back, connect); 원래대로 복원
-         *
-         * ① connect = (HBITMAP)SelectObject(back, bmp);
-         * → 기존에 back DC에 선택돼 있던 GDI 객체를 connect에 저장해 놓고, bmp를 back DC에 선택해서 그릴 수 있게 한다.
-         * → select는 기존 반환값을 전달하되, 정작 새로운 GDI 객체를 선택하게 한다.
-        */
-        SelectObject(back, connect);
-        // 
-        DeleteObject(Aisle);
-        DeleteObject(Brick);
-        DeleteObject(Character);
-        DeleteObject(Goal);
-        //
-        DeleteObject(bmp);
-        DeleteObject(connect);
-        //
-        DeleteDC(back);
-        DeleteDC(scr);
+            // 해제
+            /*
+             * DC는 항상 어떤 GDI 객체를 선택하고 있어야 함.
+             * 복원 순서
+             * ① SelectObject(back, bmp);	  후면 버퍼 DC에 비트맵 붙이기
+             * ② 그리기
+             * ③ SelectObject(back, connect); 원래대로 복원
+             *
+             * ① connect = (HBITMAP)SelectObject(back, bmp);
+             * → 기존에 back DC에 선택돼 있던 GDI 객체를 connect에 저장해 놓고, bmp를 back DC에 선택해서 그릴 수 있게 한다.
+             * → select는 기존 반환값을 전달하되, 정작 새로운 GDI 객체를 선택하게 한다.
+            */
+            SelectObject(back, connect);
+            // 
+            DeleteObject(Aisle);
+            DeleteObject(Brick);
+            DeleteObject(Character1);
+            DeleteObject(Character2);
+            DeleteObject(Goal);
+            DeleteObject(GoalLeft);
+            DeleteObject(GoalRight);
+            DeleteObject(GoalUp);
+            //
+            DeleteObject(bmp);
+            DeleteObject(connect);
+            //
+            DeleteDC(back);
+            DeleteDC(scr);
 
-        // 실제 화면에 최종 제출
-        EndPaint(hWnd, &ps);
-    }
-    break;
-    case WM_DESTROY:
+            // 실제 화면에 최종 제출
+            EndPaint(hWnd, &ps);
+        }
+        break;
+        case WM_DESTROY:
         {
             KillTimer(hWnd, 1);
             KillTimer(hWnd, 2);
             PostQuitMessage(0);
         }
-    break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
     }
-
-    return 0;
+        return 0;
 }
 
