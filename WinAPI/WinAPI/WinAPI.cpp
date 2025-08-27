@@ -32,7 +32,7 @@ const int row = static_cast<int>(grid.size());
 const int column = static_cast<int>(grid[0].size());
 const int cell = 20;
 
-vector<POINT> spawnMonster;
+vector<POINT> monsterPos;
 
 bool IsSpawnPositionValid(POINT pos) 
 {
@@ -47,7 +47,7 @@ bool IsSpawnPositionValid(POINT pos)
     }
 
     return true;
-}
+} 
 
 bool IsPlayerMoveValid(POINT pos) 
 {
@@ -56,7 +56,7 @@ bool IsPlayerMoveValid(POINT pos)
         return false;
     }
 
-    for (const POINT& monster : spawnMonster)
+    for (const POINT& monster : monsterPos)
     {
         if (pos.x == monster.x && pos.y == monster.y)
         {
@@ -105,6 +105,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+        else
+        {
+            int a = 0;
+        }
     }
 
     return (int) msg.wParam;
@@ -140,6 +144,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 //
 //   함수: InitInstance(HINSTANCE, int)
+// 
 //
 //   용도: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
 //
@@ -207,6 +212,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_CREATE:
         {
+            // 그리드 설정
             for (int i = 0; i < 20; ++i)
             {
                 grid[0][i] = 1;
@@ -228,30 +234,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             height = rect.bottom - rect.top;
             
             // 타이머
-            SetTimer(hWnd, 1, 3000, NULL);
+            SetTimer(hWnd, 1, 1000, NULL);
+            SetTimer(hWnd, 2, 3000, NULL);
         }
     break;
     case WM_TIMER:
         {
-            const vector<POINT> center =
+            switch (wParam)
             {
-                {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
-                {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
-                {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
-                {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
-            };
+            case 1:
+                {
+                    // TODO. 1초마다 monsterPos
+                    
+                }
+                break;
+            case 2:
+                {
+                    const vector<POINT> center =
+                    {
+                        {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
+                        {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
+                        {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
+                        {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
+                    };
 
-            srand(time(NULL));
+                    srand(time(NULL));
 
-            int i = rand() % center.size();
+                    int i = rand() % center.size();
 
-            POINT spawn = center[i];
-            if (!IsSpawnPositionValid(spawn))
-            {
+                    POINT spawn = center[i];
+                    if (!IsSpawnPositionValid(spawn))
+                    {
+                        break;
+                    }
+
+                    monsterPos.push_back(spawn);
+                }
+                break;
+            default:
                 break;
             }
-
-            spawnMonster.push_back(spawn);
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
@@ -267,9 +289,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
 
         // 경로 갱신
-        for (int i = 0; i < spawnMonster.size(); ++i) 
+        for (int i = 0; i < monsterPos.size(); ++i) 
         {
-            POINT monster = spawnMonster[i];
+            POINT monster = monsterPos[i];
             vector<POINT> path = aStar.findPath(monster, player, grid);
 
             if (i < pathInfo.size()) 
@@ -318,36 +340,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        // 장애물 표시
-        SelectObject(scr, Character);
-
-        // TODO. 장애물 시간 차로 그림. > 이전 위치 지우기
-                // 0ㅐㅏ 
-                // 문제 상황1. 현재 로직대로면 몬스터 하나 다 움직이고 나서야 다음 몬스터 움직임 ?? 
-                //  각 몬스터마다 동시에 한 칸씩 움직여야 함...3
-                // 
-                // 2차원으로
-                // 각 path의 0번째 열부터 들어가서 나가야 하니까 → 열은 선입선출로 Q를 사용하는 게 맞을 것 같음.
-                // 근데 그 각 열을 관리하는 것도 q여야 하는게 각각 열 개수가 다르니까....
-                // // 그리고 pop()해서 바로 비우자.873421
-                // queue<queue<POINT>> move;
-                // 
-                // 문제 상황2. 근데 여기서 슬립 때리면 문제 상황이 발생할 것 같음 ??
-                // 
-                // Sleep();
-
-        for (const vector<POINT>& path : pathInfo) 
-        {
-            for (const POINT& pos : path)
-            {
-                BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
-            }
-        }
-
         // TODO. 플레이어 크기를 40*40으로 변경 후, 위치 지정 및 이동 고려하기
         // 플레이어 표시
         SelectObject(scr, Goal);
-        BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+        BitBlt(back, player.x* cell, player.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
+
+        // 장애물 표시
+        SelectObject(scr, Character);
+        for (const POINT& pos : monsterPos) 
+        {
+            BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
+        }
 
         // 실제 화면 출력
         BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
@@ -384,6 +387,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         {
             KillTimer(hWnd, 1);
+            KillTimer(hWnd, 2);
             PostQuitMessage(0);
         }
     break;
