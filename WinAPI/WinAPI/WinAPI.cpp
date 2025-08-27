@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "WinAPI.h"
 
+#include <random>
+
 #include "pch.h"
 #include "AStar.h"
 
@@ -27,6 +29,41 @@ vector<vector<int>> grid(20, vector<int>(20, 0));
 const int row = static_cast<int>(grid.size());
 const int column = static_cast<int>(grid[0].size());
 const int cell = 20;
+
+vector<POINT> monsterPos = {};
+
+bool IsSpawnPositionValid(POINT pos) 
+{
+    if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
+    {
+        return false;
+    }
+
+    if (grid[pos.y][pos.x])
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool IsPlayerMoveValid(POINT pos) 
+{
+    if (!IsSpawnPositionValid(pos)) 
+    {
+        return false;
+    }
+
+    for (const POINT& monster : monsterPos)
+    {
+        if (pos.x == monster.x && pos.y == monster.y)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -145,10 +182,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    int width = GWinSizeX;
+    int height = GWinSizeY;
+
     PAINTSTRUCT ps;
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
-    HBITMAP Aisle, Brick,Course, Start, Goal;
+    HBITMAP Aisle, Brick,Course, Character, Start, Goal;
 
     switch (message)
     {
@@ -165,7 +205,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
-            // TODO. 모서리 벽 
+    case WM_CREATE:
+        {
             for (int i = 0; i < 20; ++i)
             {
                 grid[0][i] = 1;
@@ -181,17 +222,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 grid[i][0] = 0;
                 grid[i][19] = 0;
             }
+
+            // 화면 크기
+            width = rect.right - rect.left;
+            height = rect.bottom - rect.top;
+            
+            // 타이머
+            SetTimer(hWnd, 1, 3000, NULL);
+        }
+    break;
+    case WM_TIMER:
+        {
+            const vector<POINT> center = 
+            { 
+                {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
+                {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
+                {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
+                {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
+            };
+            
+            srand(time(NULL));
+
+            int i = rand() % center.size();
+
+            POINT spawn = center[i];
+            if (!IsSpawnPositionValid(spawn))
+            {
+                break;
+            }
+
+            monsterPos.push_back(spawn);
+
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+        }
+    break;
     case WM_LBUTTONUP:
     {
         start.x = LOWORD(lParam) / cell;
         start.y = HIWORD(lParam) / cell;
 
-        if (start.x < 0 || start.x >= column || start.y < 0 || start.y >= row) 
-        {
-            break;
-        }
-
-        if (grid[start.y][start.x]) 
+        if (!IsPlayerMoveValid({ start.x, start.y })) 
         {
             break;
         }
@@ -205,12 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         goal.x = LOWORD(lParam) / cell;
         goal.y = HIWORD(lParam) / cell;
 
-        if (goal.x < 0 || goal.x >= column || goal.y < 0 || goal.y >= row)
-        {
-            break;
-        }
-
-        if (grid[goal.y][goal.x])
+        if (!IsPlayerMoveValid({ start.x, start.y }))
         {
             break;
         }
@@ -225,9 +290,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         hdc = BeginPaint(hWnd, &ps);
 
 #pragma region Render
-        int width = rect.right - rect.left;
-        int height = rect.bottom - rect.top;
-
         // 실제 화면과 호환되는 후면 버퍼. 실제 화면에 제출할 DC 
         back = CreateCompatibleDC(hdc);
         bmp = CreateCompatibleBitmap(hdc, width, height); // dc와 호환되는 비트맵
@@ -239,7 +301,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 비트맵 로드
         Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
         Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
-        //Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
+        Character = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER));
         Course = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_COURSE));
         Start = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_START));
         Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
@@ -273,6 +335,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SelectObject(scr, Goal);
         BitBlt(back, goal.x * cell, goal.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
+        // TODO. 플레이어 크기를 40*40으로 변경 후, 위치 지정 및 이동 고려하기
+        // TODO. 장애물 이동
+        // 장애물 그리기
+        SelectObject(scr, Character);
+        for (const POINT& pos : monsterPos) 
+        {
+            BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+        }
+
         // 실제 화면 출력
         BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
 #pragma endregion
@@ -293,10 +364,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         DeleteObject(Aisle);
         DeleteObject(Brick);
         DeleteObject(Course);
+        DeleteObject(Character);
         DeleteObject(Start);
         DeleteObject(Goal);
+        //
         DeleteObject(bmp);
         DeleteObject(connect);
+        //
         DeleteDC(back);
         DeleteDC(scr);
 
@@ -305,8 +379,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     break;
     case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
+        {
+            KillTimer(hWnd, 1);
+            PostQuitMessage(0);
+        }
+    break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
