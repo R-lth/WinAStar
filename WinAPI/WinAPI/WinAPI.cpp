@@ -174,8 +174,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 grid[i][19] = 1;
             }
          
-            // TODO. 중앙 통로 5칸씩 뚫기
-            for (int i = 8; i < 13; ++i) 
+            for (int i = 7; i < 13; ++i) 
             {
                 grid[0][i] = 0;
                 grid[19][i] = 0;
