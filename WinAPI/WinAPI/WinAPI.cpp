@@ -289,8 +289,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             srand(time(NULL));
 
             // 타이머
-            SetTimer(hWnd, 1, 1500, NULL);
-            SetTimer(hWnd, 2, 3000, NULL);
+            SetTimer(hWnd, 1, 150 * 2, NULL);
+            SetTimer(hWnd, 2, 1500, NULL);
         }
         break;
         case WM_TIMER:
@@ -308,14 +308,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         next = pathInfo[id].front();
                         pathInfo[id].pop_front();
                     }
-                    
-                    // 1. 다음 위치로 이동
-                    if (!pathInfo[id].empty()) 
-                    {
-                        next = pathInfo[id].front();
-                        pathInfo[id].pop_front();
-                    }
-
+                   
                     monsterPos[id] = next;
 
                     // 2. 충돌 처리
