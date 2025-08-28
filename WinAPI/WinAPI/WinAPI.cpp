@@ -52,11 +52,11 @@ bool isObstacle(POINT pos)
     return (playGrid[pos.y][pos.x]);
 }
 
-bool hasNoCollisionWithAllMonsters(POINT pos)
+bool hasCollisionWithAllMonsters(POINT pos)
 {
     for (const POINT& monster : monsterPos) 
     {
-        if (pos.x == monster.x && pos.y && monster.y) 
+        if (pos.x == monster.x && pos.y == monster.y) 
         {
             return true;
         }
@@ -309,37 +309,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         pathInfo[id].pop_front();
                     }
                     
+                    // 1. 다음 위치로 이동
                     if (!pathInfo[id].empty()) 
                     {
                         next = pathInfo[id].front();
                         pathInfo[id].pop_front();
                     }
-                    
-                    // 충돌 처리
-                    if (!isInRange(next) || isObstacle(next))
+
+                    monsterPos[id] = next;
+
+                    // 2. 충돌 처리
+                    if (!isInRange(monsterPos[id]) || isObstacle(monsterPos[id]))
                     {
                         break;
                     }
-                    // 플레이어와 충돌 처리
-                    else if (next.x == player.x && next.y == player.y) 
+                    
+                    if (hasCollisionWithOtherMonsters(id, monsterPos[id]))
                     {
-                        gameOver = true;
                         break;
                     }
                     else 
                     {
-                        monsterPos[id] = next;
+                        // TODO. A*의 대각선 {x, y} 값 고려하기
                         deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
                         pathInfo[id] = path;
                         mFilp = !mFilp;
                     }
-                    
                 }
             }
                 break;
             case 2:
             {
-                /*const vector<POINT> center =
+                const vector<POINT> center =
                 {
                     {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
                     {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
@@ -356,7 +357,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     deque<POINT> path = aStar.findPath(monster, player, playGrid);
                     pathInfo.emplace_back(path);
                     monsterPos.emplace_back(monster);
-                }*/
+                }
             }
                 break;
             default:
@@ -438,13 +439,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pUp = false;
             }
 
+            // TODO. 현재 코드의 문제점은 키가 눌려야만 플레이어의 충돌 처리를 한다는 점임
             // 충돌 처리
             if (!isInRange(next) || isObstacle(next))
             {
                 break;
             }
 
-            if (hasNoCollisionWithAllMonsters(next)) 
+            // TODO. 추후 몬스터와 플레이어 간의 충돌 처리는 플레이어의 역할로 두자.
+            if (hasCollisionWithAllMonsters(next)) 
             {
                 gameOver = true;
                 break;
@@ -462,7 +465,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
         break;
-
         case WM_LBUTTONUP:
         {
             // TODO. 총알
