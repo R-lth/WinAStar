@@ -110,6 +110,7 @@ bool pUp = false;
 
 bool gameOver = false;
 bool isWaiting = false;
+
 vector<deque<POINT>> gun(8);
 #pragma endregion
 
@@ -285,6 +286,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 타이머
             SetTimer(hWnd, 1, 150 * 2, NULL);
             SetTimer(hWnd, 2, 1500, NULL);
+            SetTimer(hWnd, 3, 150, NULL);
         }
         break;
         case WM_TIMER:
@@ -320,9 +322,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         isWaiting = true;
                         KillTimer(hWnd, 1);
                         KillTimer(hWnd, 2);
+                        KillTimer(hWnd, 3);
 
                         // 2초 후 
-                        SetTimer(hWnd, 3, 2000, NULL);
+                        SetTimer(hWnd, 4, 2000, NULL);
                         break;
                     }
                     else 
@@ -337,6 +340,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case 2:
             {
+                // 몬스터 생성
                 const vector<POINT> center =
                 {
                     {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
@@ -359,7 +363,68 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case 3:
                 {
-                    KillTimer(hWnd, 3);
+                    for (int dir = 0; dir < gun.size(); dir++) 
+                    {
+                        // TODO. 총알 위치 갱신
+                        for (int i = 0; i < gun[dir].size(); ++i)
+                        {
+                            POINT bullet = gun[dir][i];
+
+                            switch (dir)
+                            {
+                            case 0:
+                                bullet.x -= 1;
+                                bullet.y -= 1;
+                                break;
+                            case 1:
+                                bullet.x += 1;
+                                bullet.y -= 1;
+                                break;
+                            case 2:
+                                bullet.x -= 1;
+                                bullet.y += 1;
+                                break;
+                            case 3:
+                                bullet.x += 1;
+                                bullet.y += 1;
+                                break;
+                            case 4:
+                                bullet.x -= 1;
+                                break;
+                            case 5:
+                                bullet.x += 1;
+                                break;
+                            case 6:
+                                bullet.y -= 1;
+                                break;
+                            case 7:
+                                bullet.y += 1;
+                                break;
+                            default:
+                                break;
+                            }
+
+                            // 1. 범위, 장애물
+                            if (!isInRange(bullet) || isObstacle(bullet)) 
+                            {
+                                // 제거
+                            }
+
+                            // 2. 몬스터 위치 
+                            // 제거
+
+                            // 3. 그렇지 않으면 위치 갱신
+                        }
+
+                        //  TODO. 몬스터와 충돌 처리
+                        
+                    }
+                }
+                break;
+            case 4:
+                {
+                    
+                    KillTimer(hWnd, 4);
 
                     if (isWaiting) 
                     {
@@ -453,7 +518,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pUp = false;
             }
 
-            // 충돌 처리
+            // 플레이어 충돌 처리
             if (!isInRange(next) || isObstacle(next))
             {
                 break;
@@ -615,7 +680,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
                 BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
-                // 장애물 표시
+                // 몬스터 표시
                 HBITMAP mSprite = mFilp ? Character1 : Character2;
                 SelectObject(scr, mSprite);
                 mFilp = !mFilp;
@@ -738,6 +803,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case WM_DESTROY:
         {
+            
             PostQuitMessage(0);
         }
         break;
