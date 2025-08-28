@@ -20,6 +20,7 @@
 #define IDB_CH5                 4017
 #define IDB_CH6                 4018
 #define IDB_CH7                 4019
+#define IDB_BULLET              4020
 
 #define IDS_APP_TITLE			103
 

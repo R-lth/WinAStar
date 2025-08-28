@@ -157,7 +157,7 @@
     <Image Include="goalleft.bmp" />
     <Image Include="goalright.bmp" />
     <Image Include="goalup.bmp" />
-    <Image Include="start.bmp" />
+    <Image Include="bullet.bmp" />
     <Image Include="small.ico" />
     <Image Include="WinAPI.ico" />
   </ItemGroup>

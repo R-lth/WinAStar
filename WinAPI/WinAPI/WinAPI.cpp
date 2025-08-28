@@ -237,7 +237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
-    HBITMAP Aisle, Brick, Character1, Character2, Start, Goal, GoalLeft, GoalRight, GoalUp;
+    HBITMAP Aisle, Brick, Character1, Character2, Bullet, Goal, GoalLeft, GoalRight, GoalUp;
     HBITMAP Dead, Black, Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7;
 
     switch (message)
@@ -504,10 +504,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             Ch5 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH5));
             Ch6 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH6));
             Ch7 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH7));
+            Bullet = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BULLET));
 
             /////////////////////////////////////////////////////////
-
-            //TODO. 격자 그리기 > 2초 공백 후 게임 종료 화면
             for (int y = 0; y < row; ++y)
             {
                 for (int x = 0; x < column; ++x)
@@ -607,6 +606,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteObject(Brick);
             DeleteObject(Character1);
             DeleteObject(Character2);
+            DeleteObject(Bullet);
             DeleteObject(Goal);
             DeleteObject(GoalLeft);
             DeleteObject(GoalRight);

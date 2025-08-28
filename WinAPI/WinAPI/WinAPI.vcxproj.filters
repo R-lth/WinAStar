@@ -60,9 +60,6 @@
     <Image Include="WinAPI.ico">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="start.bmp">
-      <Filter>리소스 파일</Filter>
-    </Image>
     <Image Include="aisle.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
@@ -112,6 +109,9 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="dead.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="bullet.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>
