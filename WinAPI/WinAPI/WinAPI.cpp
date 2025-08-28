@@ -321,7 +321,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         break;
                     }
                     // 플레이어와 충돌 처리
-                    if (next.x == player.x && next.y == player.y) 
+                    else if (next.x == player.x && next.y == player.y) 
                     {
                         gameOver = true;
                         break;
@@ -368,46 +368,74 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case WM_KEYDOWN:  
         {
-            // TODO. 플레이어 대각선 이동
+            // TODO. Game 객체로 프레임으로 입력 처리를 받아서, 자연스러운 입력 구현
             POINT next = player;
-            
-            switch (wParam)
+
+            bool a = GetAsyncKeyState(0x41) & 0x8000;
+            bool d = GetAsyncKeyState(0x44) & 0x8000;
+            bool w = GetAsyncKeyState(0x57) & 0x8000;
+            bool s = GetAsyncKeyState(0x53) & 0x8000;
+
+            bool left = GetAsyncKeyState(VK_LEFT) & 0x8000;
+            bool right = GetAsyncKeyState(VK_RIGHT) & 0x8000;
+            bool up = GetAsyncKeyState(VK_UP) & 0x8000;
+            bool down = GetAsyncKeyState(VK_DOWN) & 0x8000;
+
+            if ((a || left) && (w || up)) 
             {
-            case 0x41:
-            case VK_LEFT:
+                next.x -= 1;
+                next.y -= 1;
+                // 
+                pHoriz = false;
+                pUp = true;
+            }
+            else if ((d || right) && (w || up)) 
+            {
+                next.x += 1;
+                next.y -= 1;
+                //
+                pHoriz = false;
+                pUp = true;
+            }
+            else if ((a || left) && (s || down)) 
+            {
+                next.x -= 1;
+                next.y += 1;
+                //
+                pHoriz = false;
+                pUp = false;
+            }
+            else if ((d || right) && (s || down)) 
+            {
+                next.x += 1;
+                next.y += 1;
+                // 
+                pHoriz = false;
+                pUp = false;
+            }
+            else if (a || left) 
             {
                 next.x -= 1;
                 pHoriz = true;
                 pFilp = !pFilp;
             }
-                break;
-            case 0x44:
-            case VK_RIGHT:
+            else if (d || right) 
             {
                 next.x += 1;
                 pHoriz = true;
                 pFilp = !pFilp;
             }
-            break;
-            case 0x57:
-            case VK_UP:
+            else if (w || up) 
             {
                 next.y -= 1;
                 pHoriz = false;
                 pUp = true;
             }
-            break;
-            case 0x53:
-            case VK_DOWN: 
+            else if (s || down) 
             {
                 next.y += 1;
                 pHoriz = false;
                 pUp = false;
-            }
-                break;
-            
-            default: 
-                break;
             }
 
             // 충돌 처리
