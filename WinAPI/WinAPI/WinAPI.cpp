@@ -43,19 +43,16 @@ const int cell = 20;
 
 bool CanMove(POINT pos)
 {
-    // TODO. ★ 버그 관련... 벡터 범위 밖 문제
     if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
     {
         return false;
     }
 
-    // TODO. 버그 관련
     if (grid[pos.y][pos.x])
     {
         return false;
     }
 
-    // TODO. 버그 관련
     for (const deque<POINT>& monsterPath : pathInfo) 
     {
         for (const POINT& monsterPos : monsterPath) 
@@ -77,13 +74,11 @@ bool monsterCanMove(int id, POINT pos)
         return false;
     }
 
-    // TODO. 버그 관련
     if (grid[pos.y][pos.x])
     {
         return false;
     }
 
-    // TODO. 버그 관련
     for (int i = 0; i < pathInfo.size(); ++i)
     {
         if (id == i) 
@@ -292,8 +287,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 // 몬스터 이동에 따른 자동 갱신
                 for (int id = 0; id < monsterPos.size(); ++id) 
                 {
-                    // TODO. monsterPos 갱신
-                    // 아... 이미 지나간 통로면 삭제할
                     POINT next = monsterPos[id];
 
                     while (!pathInfo[id].empty() && monsterPos[id].x == next.x && monsterPos[id].y == next.y) 
@@ -350,36 +343,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
-            
         }
         break;
         case WM_KEYDOWN:  
         {
+            // TODO. 플레이어 이동 도중 끊기는 부분 
+            // TODO. 플레이어의 속도도 고려해야 하나
             POINT next = player;
+            
             switch (wParam)
             {
-            case 'A':
+            case 0x41:
+            case VK_LEFT:
             {
                 next.x -= 1;
                 pHoriz = true;
                 pFilp = !pFilp;
             }
                 break;
-            case 'D':
+            case 0x44:
+            case VK_RIGHT:
             {
                 next.x += 1;
                 pHoriz = true;
                 pFilp = !pFilp;
             }
             break;
-            case 'W':
+            case 0x57:
+            case VK_UP:
             {
                 next.y -= 1;
                 pHoriz = false;
                 pUp = true;
             }
             break;
-            case 'S': 
+            case 0x53:
+            case VK_DOWN: 
             {
                 next.y += 1;
                 pHoriz = false;
@@ -391,7 +390,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            if (!CanMove(player) || !CanMove(next))
+            if (!CanMove(next))
             {
                 // 장애물
                 // TODO. 충돌 처리
@@ -400,12 +399,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             player = next;
 
-            // 플레이어 이동에 따른 경로 갱신
+            // 플레이어 이동에 따른 몬스터 경로 갱신
             for (int id = 0; id < monsterPos.size(); ++id) 
             {
                 deque<POINT> path = aStar.findPath(monsterPos[id], player, grid);
                 pathInfo[id] = path;     
             }
+
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
         break;
