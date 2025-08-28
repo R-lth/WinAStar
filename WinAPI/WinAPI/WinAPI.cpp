@@ -110,6 +110,7 @@ bool pUp = false;
 
 bool gameOver = false;
 bool isWaiting = false;
+vector<deque<POINT>> gun(8);
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -458,6 +459,88 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
+            // 총알 생성
+            ///////////////////////////////////////////////
+            POINT bullet = player;
+
+            if (left && up) 
+            {
+                bullet.x -= 1;
+                bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[0].push_back(bullet);
+                }
+            }
+            else if (right && up) 
+            {
+                bullet.x += 1;
+                bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[1].push_back(bullet);
+                }
+            }
+            else if (left && down) 
+            {
+                bullet.x -= 1;
+                bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[2].push_back(bullet);
+                }
+            }
+            else if (right && down) 
+            {
+                bullet.x += 1;
+                bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[3].push_back(bullet);
+                }
+            }
+            else if (left)
+            {
+                bullet.x -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet)) 
+                {
+                    gun[4].push_back(bullet);
+                }
+            }
+            else if (right)
+            {
+                bullet.x += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[5].push_back(bullet);
+                }
+            }
+            else if (up)
+            {
+                bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[6].push_back(bullet);
+                }
+            }
+            else if (down)
+            {
+                bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun[7].push_back(bullet);
+                }
+            }
+            ///////////////////////////////////////////////
+
             player = next;
 
             // 플레이어 이동에 따른 몬스터 경로 갱신
@@ -541,6 +624,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 }
+
+                // 총알 표시
+                SelectObject(scr, Bullet); 
+                for (const deque<POINT>& bulletDir : gun) 
+                {
+                    for (int i = 0; i < bulletDir.size(); ++i) 
+                    {
+                        POINT bullet = bulletDir[i];
+                        BitBlt(back, bullet.x* cell, bullet.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    }
+                }
             }
             if (!gameOver && isWaiting)
             {
@@ -553,6 +647,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 for (const POINT& pos : monsterPos)
                 {
                     BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
+
+                // 총알 표시
+                SelectObject(scr, Aisle);
+                for (const deque<POINT>& bulletDir : gun)
+                {
+                    for (int i = 0; i < bulletDir.size(); ++i)
+                    {
+                        POINT bullet = bulletDir[i];
+                        BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    }
                 }
             }
             else if (gameOver)
