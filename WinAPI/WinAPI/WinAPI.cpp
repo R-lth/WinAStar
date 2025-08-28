@@ -289,8 +289,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             srand(time(NULL));
 
             // 타이머
-            SetTimer(hWnd, 1, 150 * 2, NULL);
-            SetTimer(hWnd, 2, 1500, NULL);
+            SetTimer(hWnd, 1, 1500, NULL);
+            SetTimer(hWnd, 2, 3000, NULL);
         }
         break;
         case WM_TIMER:
@@ -321,12 +321,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     // 2. 충돌 처리
                     if (!isInRange(monsterPos[id]) || isObstacle(monsterPos[id]))
                     {
-                        break;
+                        continue;
                     }
                     
                     if (hasCollisionWithOtherMonsters(id, monsterPos[id]))
                     {
-                        break;
+                        continue;
                     }
                     else 
                     {
