@@ -2,9 +2,6 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 WinAPI.rc
 
-// 상수 중복 문제
-// https://nagie.tistory.com/117
-
 #define IDB_AISLE               4001
 #define IDB_BRICK               4002
 #define IDB_CHARACTER1          4004
@@ -14,6 +11,14 @@
 #define IDB_GOALLEFT            4008
 #define IDB_GOALRIGHT           4009
 #define IDB_GOALUP              4010
+#define IDB_BLACK               4011
+#define IDB_CH1                 4012
+#define IDB_CH2                 4013
+#define IDB_CH3                 4014
+#define IDB_CH4                 4015
+#define IDB_CH5                 4016
+#define IDB_CH6                 4017
+#define IDB_CH7                 4018
 
 #define IDS_APP_TITLE			103
 

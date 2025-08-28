@@ -29,7 +29,8 @@ vector<deque<POINT>> pathInfo;
 vector<POINT> monsterPos;
 
 // 0 : 길, 1 : 벽
-vector<vector<int>> grid(20, vector<int>(20, 0));
+vector<vector<int>> playGrid(20, vector<int>(20, 0));
+vector<vector<int>> endGrid(20, vector<int>(20, 0));
 
 const std::vector<pair<POINT, float>> direction =
 {
@@ -37,18 +38,60 @@ const std::vector<pair<POINT, float>> direction =
     { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
 };
 
-const int row = static_cast<int>(grid.size());
-const int column = static_cast<int>(grid[0].size());
+const int row = static_cast<int>(playGrid.size());
+const int column = static_cast<int>(playGrid[0].size());
 const int cell = 20;
 
-bool CanMove(POINT pos)
+bool isInRange(POINT pos)
+{
+    return (pos.x >= 0 && pos.x < column && pos.y >= 0 && pos.y < row);
+}
+
+bool isObstacle(POINT pos)
+{
+    return (playGrid[pos.y][pos.x]);
+}
+
+bool hasNoCollisionWithAllMonsters(POINT pos)
+{
+    for (const POINT& monster : monsterPos) 
+    {
+        if (pos.x == monster.x && pos.y && monster.y) 
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool hasCollisionWithOtherMonsters(int id, POINT pos)
+{
+    for (int i = 0; i < monsterPos.size(); ++i) 
+    {
+        if (id == i) 
+        {
+            continue;
+        }
+
+        POINT other = monsterPos[i];
+        if (pos.x == other.x && pos.y == other.y) 
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool CanSpawn(POINT pos)
 {
     if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
     {
         return false;
     }
 
-    if (grid[pos.y][pos.x])
+    if (playGrid[pos.y][pos.x])
     {
         return false;
     }
@@ -67,42 +110,13 @@ bool CanMove(POINT pos)
     return true;
 }
 
-bool monsterCanMove(int id, POINT pos)
-{
-    if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
-    {
-        return false;
-    }
-
-    if (grid[pos.y][pos.x])
-    {
-        return false;
-    }
-
-    for (int i = 0; i < pathInfo.size(); ++i)
-    {
-        if (id == i) 
-        {
-            continue;
-        }
-
-        for (const POINT& monsterPos : pathInfo[i])
-        {
-            if (pos.x == monsterPos.x && pos.y == monsterPos.y)
-            {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
 bool mFilp = false;
 
 bool pHoriz = false;
 bool pFilp = false;
 bool pUp = false;
+
+bool gameOver = false;
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -231,6 +245,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
     HBITMAP Aisle, Brick, Character1, Character2, Start, Goal, GoalLeft, GoalRight, GoalUp;
+    HBITMAP Black, Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7;
 
     switch (message)
     {
@@ -256,21 +271,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 그리드 설정
             for (int i = 0; i < 20; ++i)
             {
-                grid[0][i] = 1;
-                grid[19][i] = 1;
-                grid[i][0] = 1;
-                grid[i][19] = 1;
+                playGrid[0][i] = 1;
+                playGrid[19][i] = 1;
+                playGrid[i][0] = 1;
+                playGrid[i][19] = 1;
             }
 
             for (int i = 7; i < 13; ++i)
             {
-                grid[0][i] = 0;
-                grid[19][i] = 0;
-                grid[i][0] = 0;
-                grid[i][19] = 0;
+                playGrid[0][i] = 0;
+                playGrid[19][i] = 0;
+                playGrid[i][0] = 0;
+                playGrid[i][19] = 0;
             }
 
-            // 그리드 관련 랜덤 값을 위한 함수
+            // 몬스터 생성 위치 관련 랜덤 값을 위한 함수
             srand(time(NULL));
 
             // 타이머
@@ -284,7 +299,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
             case 1:
             {
-                // 몬스터 이동에 따른 자동 갱신
                 for (int id = 0; id < monsterPos.size(); ++id) 
                 {
                     POINT next = monsterPos[id];
@@ -300,26 +314,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         next = pathInfo[id].front();
                         pathInfo[id].pop_front();
                     }
-
-                    if (monsterCanMove(id, next))
+                    
+                    // 충돌 처리
+                    if (!isInRange(next) || isObstacle(next))
+                    {
+                        break;
+                    }
+                    // 플레이어와 충돌 처리
+                    if (next.x == player.x && next.y == player.y) 
+                    {
+                        gameOver = true;
+                        break;
+                    }
+                    else 
                     {
                         monsterPos[id] = next;
-                        deque<POINT> path = aStar.findPath(monsterPos[id], player, grid);
+                        deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
                         pathInfo[id] = path;
                         mFilp = !mFilp;
                     }
-                    // 장애물
-                    else
-                    {
-                        // TODO. 충돌 처리
-                    }
+                    
                 }
             }
                 break;
             case 2:
             {
-                // 몬스터 생성
-                const vector<POINT> center =
+                /*const vector<POINT> center =
                 {
                     {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
                     {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
@@ -330,12 +350,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 int i = rand() % center.size();
 
                 POINT monster = center[i];
-                if (CanMove(monster))
+
+                if (CanSpawn(monster))
                 {
-                    deque<POINT> path = aStar.findPath(monster, player, grid);
+                    deque<POINT> path = aStar.findPath(monster, player, playGrid);
                     pathInfo.emplace_back(path);
                     monsterPos.emplace_back(monster);
-                }
+                }*/
             }
                 break;
             default:
@@ -347,8 +368,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case WM_KEYDOWN:  
         {
-            // TODO. 플레이어 이동 도중 끊기는 부분 
-            // TODO. 플레이어의 속도도 고려해야 하나
+            // TODO. 플레이어 대각선 이동
             POINT next = player;
             
             switch (wParam)
@@ -390,10 +410,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            if (!CanMove(next))
+            // 충돌 처리
+            if (!isInRange(next) || isObstacle(next))
             {
-                // 장애물
-                // TODO. 충돌 처리
+                break;
+            }
+
+            if (hasNoCollisionWithAllMonsters(next)) 
+            {
+                gameOver = true;
                 break;
             }
 
@@ -402,7 +427,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 플레이어 이동에 따른 몬스터 경로 갱신
             for (int id = 0; id < monsterPos.size(); ++id) 
             {
-                deque<POINT> path = aStar.findPath(monsterPos[id], player, grid);
+                deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
                 pathInfo[id] = path;     
             }
 
@@ -440,38 +465,91 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GoalLeft = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALLEFT));
             GoalRight = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALRIGHT));
             GoalUp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALUP));
+            Black = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BLACK));
+            Ch1 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH1));
+            Ch2 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH2));
+            Ch3 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH3));
+            Ch4 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH4));
+            Ch5 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH5));
+            Ch6 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH6));
+            Ch7 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH7));
 
-            // 격자 그리기
-            for (int y = 0; y < row; ++y)
+            if (!gameOver) 
             {
-                for (int x = 0; x < column; ++x)
+                // 격자 그리기
+                for (int y = 0; y < row; ++y)
                 {
-                    HBITMAP tile = grid[y][x] ? Brick : Aisle;
-                    SelectObject(scr, tile);
-                    BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    for (int x = 0; x < column; ++x)
+                    {
+                        HBITMAP tile = playGrid[y][x] ? Brick : Aisle;
+                        SelectObject(scr, tile);
+                        BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    }
                 }
-            }
 
-            // 플레이어 표시
-            if (pHoriz) 
-            {
-                HBITMAP pSprite = pFilp ? GoalLeft : GoalRight;
-                SelectObject(scr, pSprite);
+                // 플레이어 표시
+                if (pHoriz)
+                {
+                    HBITMAP pSprite = pFilp ? GoalLeft : GoalRight;
+                    SelectObject(scr, pSprite);
+                }
+                else
+                {
+                    HBITMAP pSprite = pUp ? GoalUp : Goal;
+                    SelectObject(scr, pSprite);
+                }
+                BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+
+                // 장애물 표시
+                HBITMAP mSprite = mFilp ? Character1 : Character2;
+                SelectObject(scr, mSprite);
+
+                for (const POINT& pos : monsterPos)
+                {
+                    BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
             }
             else 
             {
-                HBITMAP pSprite = pUp ? GoalUp : Goal;
-                SelectObject(scr, pSprite);
-            }
-            BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                //TODO. 격자 그리기 > 2초 공백 후 게임 종료 화면
+                for (int y = 0; y < row; ++y)
+                {
+                    for (int x = 0; x < column; ++x)
+                    {
+                        HBITMAP tile = playGrid[y][x] ? Brick : Aisle;
+                        SelectObject(scr, tile);
+                        BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    }
+                }
 
-            // 장애물 표시
-            HBITMAP mSprite = mFilp ? Character1 : Character2;  
-            SelectObject(scr, mSprite);
-            
-            for (const POINT& pos : monsterPos) 
-            {
-                BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                Sleep(2000);
+
+                // 게임 종료 화면
+                for (int y = 0; y < row; ++y)
+                {
+                    for (int x = 0; x < column; ++x)
+                    {
+                        SelectObject(scr, Black);
+                        BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    }
+                }
+
+                SelectObject(scr, Ch1);
+                BitBlt(back, 9 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch2);
+                BitBlt(back, 10 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch3);
+                BitBlt(back, 11 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch4);
+                BitBlt(back, 12 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch5);
+                BitBlt(back, 10 * cell, 7 * cell, cell, cell, scr, 0, 0, SRCCOPY); 
+                SelectObject(scr, Ch4);
+                BitBlt(back, 11 * cell, 7 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch6);
+                BitBlt(back, 10 * cell, 8  * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch7);
+                BitBlt(back, 11 * cell, 8 * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
             // 실제 화면 출력
@@ -499,6 +577,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteObject(GoalLeft);
             DeleteObject(GoalRight);
             DeleteObject(GoalUp);
+            DeleteObject(Black);
+            DeleteObject(Ch1);
+            DeleteObject(Ch2);
+            DeleteObject(Ch3);
+            DeleteObject(Ch4);
+            DeleteObject(Ch5);
+            DeleteObject(Ch6);
+            DeleteObject(Ch7);
             //
             DeleteObject(bmp);
             DeleteObject(connect);

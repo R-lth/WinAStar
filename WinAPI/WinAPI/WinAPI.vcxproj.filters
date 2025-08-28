@@ -87,5 +87,32 @@
     <Image Include="goalup.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="dead.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch4.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch6.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch7.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="ch5.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="black.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>
