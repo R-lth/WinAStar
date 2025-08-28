@@ -395,7 +395,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             bool up = GetAsyncKeyState(VK_UP) & 0x8000;
             bool down = GetAsyncKeyState(VK_DOWN) & 0x8000;
 
-            if ((a || left) && (w || up)) 
+            if (a && w) 
             {
                 next.x -= 1;
                 next.y -= 1;
@@ -403,7 +403,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pHoriz = false;
                 pUp = true;
             }
-            else if ((d || right) && (w || up)) 
+            else if (d && w) 
             {
                 next.x += 1;
                 next.y -= 1;
@@ -411,7 +411,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pHoriz = false;
                 pUp = true;
             }
-            else if ((a || left) && (s || down)) 
+            else if (a && s) 
             {
                 next.x -= 1;
                 next.y += 1;
@@ -419,7 +419,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pHoriz = false;
                 pUp = false;
             }
-            else if ((d || right) && (s || down)) 
+            else if (d && s) 
             {
                 next.x += 1;
                 next.y += 1;
@@ -427,25 +427,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pHoriz = false;
                 pUp = false;
             }
-            else if (a || left) 
+            else if (a) 
             {
                 next.x -= 1;
                 pHoriz = true;
                 pFilp = !pFilp;
             }
-            else if (d || right) 
+            else if (d) 
             {
                 next.x += 1;
                 pHoriz = true;
                 pFilp = !pFilp;
             }
-            else if (w || up) 
+            else if (w) 
             {
                 next.y -= 1;
                 pHoriz = false;
                 pUp = true;
             }
-            else if (s || down) 
+            else if (s) 
             {
                 next.y += 1;
                 pHoriz = false;
