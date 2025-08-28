@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <deque>
 
 using namespace std;
 
@@ -31,10 +32,10 @@ struct Compare
 class AStar
 {
 public:
-	vector<POINT> findPath(POINT start, POINT goal, const vector<vector<int>> grid);
+	deque<POINT> findPath(POINT start, POINT goal, const vector<vector<int>> grid);
 
 private:
-	void setPath(POINT character);
+	deque<POINT> getPath(POINT character, map<POINT, POINT> visited);
 	float heuristic(POINT next, POINT goal);
 
 private:
@@ -43,8 +44,4 @@ private:
 		{ {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
 		{ {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
 	};
-
-
-	vector<POINT> path = {};
-	map<POINT, POINT> visited;
 };

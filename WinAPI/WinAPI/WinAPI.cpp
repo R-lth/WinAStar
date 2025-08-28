@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 #include <queue>
+#include <deque>
 #include <random>
 
 #include "pch.h"
@@ -22,38 +23,47 @@ RECT rect;
 
 AStar aStar;
 POINT player = { 10,10 };
-// index : 몬스터 ID, 값 : 몬스터 위치
-vector<vector<POINT>> pathInfo;
+// index : 몬스터 ID, 값 : 몬스터 경로
+vector<deque<POINT>> pathInfo;
+// index : 몬스터 ID, 값 : 몬스터 현재 위치
+vector<POINT> monsterPos;
 
 // 0 : 길, 1 : 벽
 vector<vector<int>> grid(20, vector<int>(20, 0));
+
+const std::vector<pair<POINT, float>> direction =
+{
+    { {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
+    { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
+};
 
 const int row = static_cast<int>(grid.size());
 const int column = static_cast<int>(grid[0].size());
 const int cell = 20;
 
-vector<POINT> monsterPos;
-
-// 인덱스 = 몬스터 id, 값 = 몬스터 step  
-vector<int> monsterStep;
-
-bool playerCanMove(POINT pos)
+bool CanMove(POINT pos)
 {
+    // TODO. ★ 버그 관련... 벡터 범위 밖 문제
     if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
     {
         return false;
     }
 
+    // TODO. 버그 관련
     if (grid[pos.y][pos.x])
     {
         return false;
     }
 
-    for (const POINT& monster : monsterPos)
+    // TODO. 버그 관련
+    for (const deque<POINT>& monsterPath : pathInfo) 
     {
-        if (pos.x == monster.x && pos.y == monster.y)
+        for (const POINT& monsterPos : monsterPath) 
         {
-            return false;
+            if (pos.x == monsterPos.x && pos.y == monsterPos.y)
+            {
+                return false;
+            }
         }
     }
 
@@ -67,32 +77,30 @@ bool monsterCanMove(int id, POINT pos)
         return false;
     }
 
+    // TODO. 버그 관련
     if (grid[pos.y][pos.x])
     {
         return false;
     }
 
-    for (int i = 0; i < monsterPos.size(); ++i)
+    // TODO. 버그 관련
+    for (int i = 0; i < pathInfo.size(); ++i)
     {
         if (id == i) 
         {
             continue;
         }
 
-        if (pos.x == monsterPos[i].x && pos.y == monsterPos[i].y)
+        for (const POINT& monsterPos : pathInfo[i])
         {
-            return false;
+            if (pos.x == monsterPos.x && pos.y == monsterPos.y)
+            {
+                return false;
+            }
         }
     }
 
     return true;
-}
-
-int nextStep(int pathSize) 
-{
-    return 0;
-    // 0 : 기존 몬스터 자리, 1 : 이동
-    //return (pathSize > 1) ? 1 : 0;
 }
 
 bool mFilp = false;
@@ -281,35 +289,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
             case 1:
             {
-                // 몬스터 위치 자동 갱신
-                int monsterCnt = static_cast<int>(monsterPos.size());
-                for (int id = 0; id < monsterCnt; ++id) 
+                // 몬스터 이동에 따른 자동 갱신
+                for (int id = 0; id < monsterPos.size(); ++id) 
                 {
-                    int monsterStepEnd = static_cast<int>(pathInfo.size());
-                    if (monsterStepEnd == 0 || id >= monsterStepEnd)
+                    // TODO. monsterPos 갱신
+                    // 아... 이미 지나간 통로면 삭제할
+                    POINT next = monsterPos[id];
+
+                    while (!pathInfo[id].empty() && monsterPos[id].x == next.x && monsterPos[id].y == next.y) 
+                    {   
+                        next = pathInfo[id].front();
+                        pathInfo[id].pop_front();
+                    }
+                    
+                    if (!pathInfo[id].empty()) 
                     {
-                        continue;
+                        next = pathInfo[id].front();
+                        pathInfo[id].pop_front();
                     }
 
-                    POINT step = pathInfo[id][monsterStep[id]];
-                    if (monsterStep[id] < monsterStepEnd && monsterCanMove(id, step))
+                    if (monsterCanMove(id, next))
                     {
-                        monsterPos[id] = step;
-                        ++monsterStep[id];
+                        monsterPos[id] = next;
+                        deque<POINT> path = aStar.findPath(monsterPos[id], player, grid);
+                        pathInfo[id] = path;
                         mFilp = !mFilp;
                     }
+                    // 장애물
                     else
                     {
-                        // 장애물. 경로 갱신
-                        vector<POINT> path = aStar.findPath(monsterPos[id], player, grid);
-                        pathInfo[id] = path;
-                        monsterStep[id] = 0;     
+                        // TODO. 충돌 처리
                     }
                 }
             }
                 break;
             case 2:
             {
+                // 몬스터 생성
                 const vector<POINT> center =
                 {
                     {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
@@ -320,16 +336,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 int i = rand() % center.size();
 
-                POINT spawn = center[i];
-                if (!playerCanMove(spawn))
+                POINT monster = center[i];
+                if (CanMove(monster))
                 {
-                    break;
+                    deque<POINT> path = aStar.findPath(monster, player, grid);
+                    pathInfo.emplace_back(path);
+                    monsterPos.emplace_back(monster);
                 }
-
-                monsterPos.push_back(spawn);
-                vector<POINT> path = aStar.findPath(spawn, player, grid);
-                pathInfo.emplace_back(path);
-                monsterStep.push_back((path.size() > 1) ? 1 : 0);
             }
                 break;
             default:
@@ -378,30 +391,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
 
-            if (!playerCanMove(player) || !playerCanMove(next))
+            if (!CanMove(player) || !CanMove(next))
             {
+                // 장애물
+                // TODO. 충돌 처리
                 break;
             }
 
             player = next;
 
-            // 경로 갱신
-            for (int i = 0; i < monsterPos.size(); ++i)
+            // 플레이어 이동에 따른 경로 갱신
+            for (int id = 0; id < monsterPos.size(); ++id) 
             {
-                POINT monster = monsterPos[i];
-                vector<POINT> path = aStar.findPath(monster, player, grid);
-
-                if (i < pathInfo.size())
-                {
-                    pathInfo[i] = path;
-                }
-                else
-                {
-                    pathInfo.emplace_back(path);
-                }
-
-                RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+                deque<POINT> path = aStar.findPath(monsterPos[id], player, grid);
+                pathInfo[id] = path;     
             }
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
         break;
 
@@ -463,6 +468,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 장애물 표시
             HBITMAP mSprite = mFilp ? Character1 : Character2;  
             SelectObject(scr, mSprite);
+            
             for (const POINT& pos : monsterPos) 
             {
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
