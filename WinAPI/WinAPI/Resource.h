@@ -11,14 +11,15 @@
 #define IDB_GOALLEFT            4008
 #define IDB_GOALRIGHT           4009
 #define IDB_GOALUP              4010
-#define IDB_BLACK               4011
-#define IDB_CH1                 4012
-#define IDB_CH2                 4013
-#define IDB_CH3                 4014
-#define IDB_CH4                 4015
-#define IDB_CH5                 4016
-#define IDB_CH6                 4017
-#define IDB_CH7                 4018
+#define IDB_DEAD                4011
+#define IDB_BLACK               4012
+#define IDB_CH1                 4013
+#define IDB_CH2                 4014
+#define IDB_CH3                 4015
+#define IDB_CH4                 4016
+#define IDB_CH5                 4017
+#define IDB_CH6                 4018
+#define IDB_CH7                 4019
 
 #define IDS_APP_TITLE			103
 

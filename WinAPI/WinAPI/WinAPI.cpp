@@ -52,20 +52,7 @@ bool isObstacle(POINT pos)
     return (playGrid[pos.y][pos.x]);
 }
 
-bool hasCollisionWithAllMonsters(POINT pos)
-{
-    for (const POINT& monster : monsterPos) 
-    {
-        if (pos.x == monster.x && pos.y == monster.y) 
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool hasCollisionWithOtherMonsters(int id, POINT pos)
+bool CollideWithOtherMonsters(int id, POINT pos)
 {
     for (int i = 0; i < monsterPos.size(); ++i) 
     {
@@ -82,6 +69,11 @@ bool hasCollisionWithOtherMonsters(int id, POINT pos)
     }
 
     return false;
+}
+
+bool CollideWithPlayer(POINT pos) 
+{
+    return (pos.x == player.x && pos.y == player.y);
 }
 
 bool CanSpawn(POINT pos)
@@ -117,6 +109,7 @@ bool pFilp = false;
 bool pUp = false;
 
 bool gameOver = false;
+bool isWaiting = false;
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -245,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     HDC hdc, back, scr;
     HBITMAP bmp, connect;
     HBITMAP Aisle, Brick, Character1, Character2, Start, Goal, GoalLeft, GoalRight, GoalUp;
-    HBITMAP Black, Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7;
+    HBITMAP Dead, Black, Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7;
 
     switch (message)
     {
@@ -315,9 +308,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         continue;
                     }
                     
-                    if (hasCollisionWithOtherMonsters(id, monsterPos[id]))
+                    if (CollideWithOtherMonsters(id, monsterPos[id]))
                     {
                         continue;
+                    }
+
+                    // 키가 눌리지 않아도, 플레이어와 몬스터 간의 충돌이 가능하도록
+                    if (CollideWithPlayer(monsterPos[id]))
+                    {
+                        isWaiting = true;
+                        KillTimer(hWnd, 1);
+                        KillTimer(hWnd, 2);
+
+                        // 2초 후 
+                        SetTimer(hWnd, 3, 2000, NULL);
+                        break;
                     }
                     else 
                     {
@@ -351,6 +356,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
                 break;
+            case 3:
+                {
+                    KillTimer(hWnd, 3);
+
+                    if (isWaiting) 
+                    {
+                        isWaiting = false;
+                        // 게임 종료 
+                        gameOver = true;              
+
+                        RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+                        // TODO. 바로 업데이트
+                        UpdateWindow(hWnd);
+                    }
+                }
+                break;
             default:
                 break;
             }
@@ -363,6 +384,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // TODO. Game 객체로 프레임으로 입력 처리를 받아서, 자연스러운 입력 구현
             POINT next = player;
 
+            // TODO. 이동 키 WASD, 사격 키 ← → ↑ ↓
             bool a = GetAsyncKeyState(0x41) & 0x8000;
             bool d = GetAsyncKeyState(0x44) & 0x8000;
             bool w = GetAsyncKeyState(0x57) & 0x8000;
@@ -430,17 +452,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 pUp = false;
             }
 
-            // TODO. 현재 코드의 문제점은 키가 눌려야만 플레이어의 충돌 처리를 한다는 점임
             // 충돌 처리
             if (!isInRange(next) || isObstacle(next))
             {
-                break;
-            }
-
-            // TODO. 추후 몬스터와 플레이어 간의 충돌 처리는 플레이어의 역할로 두자.
-            if (hasCollisionWithAllMonsters(next)) 
-            {
-                gameOver = true;
                 break;
             }
 
@@ -454,11 +468,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
-        }
-        break;
-        case WM_LBUTTONUP:
-        {
-            // TODO. 총알
         }
         break;
         case WM_PAINT:
@@ -486,6 +495,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GoalLeft = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALLEFT));
             GoalRight = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALRIGHT));
             GoalUp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALUP));
+            Dead = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_DEAD));
             Black = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BLACK));
             Ch1 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH1));
             Ch2 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH2));
@@ -495,19 +505,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             Ch6 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH6));
             Ch7 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH7));
 
-            if (!gameOver) 
-            {
-                // 격자 그리기
-                for (int y = 0; y < row; ++y)
-                {
-                    for (int x = 0; x < column; ++x)
-                    {
-                        HBITMAP tile = playGrid[y][x] ? Brick : Aisle;
-                        SelectObject(scr, tile);
-                        BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-                    }
-                }
+            /////////////////////////////////////////////////////////
 
+            //TODO. 격자 그리기 > 2초 공백 후 게임 종료 화면
+            for (int y = 0; y < row; ++y)
+            {
+                for (int x = 0; x < column; ++x)
+                {
+                    HBITMAP tile = playGrid[y][x] ? Brick : Aisle;
+                    SelectObject(scr, tile);
+                    BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
+            }
+
+            if (!gameOver && !isWaiting) 
+            {
                 // 플레이어 표시
                 if (pHoriz)
                 {
@@ -531,21 +543,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 }
             }
-            else 
+            if (!gameOver && isWaiting)
             {
-                //TODO. 격자 그리기 > 2초 공백 후 게임 종료 화면
-                for (int y = 0; y < row; ++y)
+                // 플레이어 표시
+                SelectObject(scr, Dead);
+                BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+
+                // 장애물 표시
+                SelectObject(scr, Dead);
+                for (const POINT& pos : monsterPos)
                 {
-                    for (int x = 0; x < column; ++x)
-                    {
-                        HBITMAP tile = playGrid[y][x] ? Brick : Aisle;
-                        SelectObject(scr, tile);
-                        BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-                    }
+                    BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 }
-
-                Sleep(2000);
-
+            }
+            else if (gameOver)
+            {
                 // 게임 종료 화면
                 for (int y = 0; y < row; ++y)
                 {
@@ -599,6 +611,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteObject(GoalLeft);
             DeleteObject(GoalRight);
             DeleteObject(GoalUp);
+            DeleteObject(Dead);
             DeleteObject(Black);
             DeleteObject(Ch1);
             DeleteObject(Ch2);
@@ -620,8 +633,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case WM_DESTROY:
         {
-            KillTimer(hWnd, 1);
-            KillTimer(hWnd, 2);
             PostQuitMessage(0);
         }
         break;
