@@ -309,8 +309,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         pathInfo[id].pop_front();
                     }
                    
-                    monsterPos[id] = next;
-
                     // 2. 충돌 처리
                     if (!isInRange(monsterPos[id]) || isObstacle(monsterPos[id]))
                     {
@@ -324,9 +322,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     else 
                     {
                         // TODO. A*의 대각선 {x, y} 값 고려하기
+                        monsterPos[id] = next;
                         deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
                         pathInfo[id] = path;
-                        mFilp = !mFilp;
                     }
                 }
             }
@@ -526,6 +524,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 // 장애물 표시
                 HBITMAP mSprite = mFilp ? Character1 : Character2;
                 SelectObject(scr, mSprite);
+                mFilp = !mFilp;
 
                 for (const POINT& pos : monsterPos)
                 {
