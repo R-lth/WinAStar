@@ -4,7 +4,7 @@
 #include "framework.h"
 #include "WinAPI.h"
 
-#include <unordered_map>
+#include <map>
 #include <queue>
 #include <deque>
 #include <list>
@@ -26,8 +26,8 @@ AStar aStar;
 POINT player = { 10,10 };
 // index : 몬스터 ID, 값 : 몬스터 경로
 vector<deque<POINT>> pathInfo;
-// index : 몬스터 ID, 값 : 몬스터 현재 위치
-vector<POINT> monsterPos;
+// 몬스터 ID와 몬스터 현재 위치
+map<int, POINT> monsterPos;
 
 // 0 : 길, 1 : 벽
 vector<vector<int>> playGrid(20, vector<int>(20, 0));
@@ -79,9 +79,10 @@ bool CollideWithPlayer(POINT pos)
 
 bool CollideWithAllMonsters(POINT pos) 
 {
-    for (const POINT& monster : monsterPos) 
+    for (const pair<int, POINT>& it : monsterPos) 
     {
-        if (pos.x == monster.x && pos.y == monster.y) 
+        POINT monster = it.second;
+        if (pos.x == monster.x && pos.y == monster.y)
         {
             return true;
         }
@@ -373,7 +374,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     deque<POINT> path = aStar.findPath(monster, player, playGrid);
                     pathInfo.emplace_back(path);
-                    monsterPos.emplace_back(monster);
+                    int id = pathInfo.size() - 1;
+                    monsterPos.insert({id, monster});
                 }
             }
                 break;
@@ -431,14 +433,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         // 2. 사격 판정
                         bool hit = false;
 
-                        for (const POINT& monster : monsterPos)
+                        for (int id = 0; id < monsterPos.size(); ++id) 
                         {
-                            if (bullet.x == monster.x && bullet.y == monster.y)
+                            if (bullet.x == monsterPos[id].x && bullet.y == monsterPos[id].y)
                             {
                                 hit = true;
                                 it = gun.erase(it);
-                                // TODO. 몬스터 제거
-                                //  TODO. 몬스터와 충돌 처리
+                                //  TODO. 몬스터와 충돌 처리 (몬스터 제거)
+
+
+
                                 break;
                             }
                         }
@@ -559,54 +563,90 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             int dir = 0;
             POINT bullet = player;
 
-            if (left && up) 
+
+            if (left && up)
             {
                 dir = 0;
                 bullet.x -= 1;
                 bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
-            else if (right && up) 
+            else if (right && up)
             {
                 dir = 1;
                 bullet.x += 1;
                 bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
-            else if (left && down) 
+            else if (left && down)
             {
                 dir = 2;
                 bullet.x -= 1;
                 bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
-            else if (right && down) 
+            else if (right && down)
             {
                 dir = 3;
                 bullet.x += 1;
                 bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
             else if (left)
             {
                 dir = 4;
                 bullet.x -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
             else if (right)
             {
                 dir = 5;
                 bullet.x += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
             else if (up)
             {
                 dir = 6;
                 bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
             else if (down)
             {
                 dir = 7;
                 bullet.y += 1;
-            }
 
-            if (isInRange(bullet) && !isObstacle(bullet))
-            {
-                gun.push_back({ dir, bullet });
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
             }
             ///////////////////////////////////////////////
 
@@ -689,9 +729,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 SelectObject(scr, mSprite);
                 mFilp = !mFilp;
 
-                for (const POINT& pos : monsterPos)
+                for (const pair<int, POINT>& it : monsterPos) 
                 {
-                    BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    POINT pos = it.second;
+                    BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
                 }
 
                 // 총알 표시
@@ -712,8 +753,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 // 장애물 표시
                 SelectObject(scr, Dead);
-                for (const POINT& pos : monsterPos)
+                for (const pair<int, POINT>& it : monsterPos)
                 {
+                    POINT pos = it.second;
                     BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 }
 
