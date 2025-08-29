@@ -369,7 +369,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 POINT monster = center[i];
 
-                if (CanSpawn(monster))
+                if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster)) 
                 {
                     deque<POINT> path = aStar.findPath(monster, player, playGrid);
                     pathInfo.emplace_back(path);
