@@ -669,10 +669,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 // 총알 표시
                 SelectObject(scr, Bullet); 
-                using It = list<POINT>::iterator;
+                using It = list<pair<int, POINT>>::iterator;
                 for (It it = gun.begin(); it != gun.end();)
                 {
-                    POINT bullet = *it;
+                    POINT bullet = it->second;
                     BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                     it = next(it);
                 }
@@ -692,10 +692,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 // 총알 표시
                 SelectObject(scr, Aisle);
-                using It = list<POINT>::iterator;
+                using It = list<pair<int, POINT>>::iterator;
                 for (It it = gun.begin(); it != gun.end();)
                 {
-                    POINT bullet = *it;
+                    POINT bullet = it->second;
                     BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                     it = next(it);
                 }
