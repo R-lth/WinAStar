@@ -114,7 +114,7 @@ bool isWaiting = false;
 
 // 총알 관리
 // TODO. 자료구조 고민해 보기
-list<POINT> gun(8);
+list<pair<int, POINT>> gun(8);
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -529,48 +529,57 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             // 총알 생성
             ///////////////////////////////////////////////
+            int dir = 0;
             POINT bullet = player;
 
             if (left && up) 
             {
+                dir = 0;
                 bullet.x -= 1;
                 bullet.y -= 1;
             }
             else if (right && up) 
             {
+                dir = 1;
                 bullet.x += 1;
                 bullet.y -= 1;
             }
             else if (left && down) 
             {
+                dir = 2;
                 bullet.x -= 1;
                 bullet.y += 1;
             }
             else if (right && down) 
             {
+                dir = 3;
                 bullet.x += 1;
                 bullet.y += 1;
             }
             else if (left)
             {
+                dir = 4;
                 bullet.x -= 1;
             }
             else if (right)
             {
+                dir = 5;
                 bullet.x += 1;
             }
             else if (up)
             {
+                dir = 6;
                 bullet.y -= 1;
             }
             else if (down)
             {
+                dir = 7;
                 bullet.y += 1;
             }
 
             if (isInRange(bullet) && !isObstacle(bullet))
             {
-                gun.push_back(bullet);
+                gun.push_back({ dir, bullet });
             }
             ///////////////////////////////////////////////
 
