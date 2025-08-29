@@ -77,6 +77,19 @@ bool CollideWithPlayer(POINT pos)
     return (pos.x == player.x && pos.y == player.y);
 }
 
+bool CollideWithAllMonsters(POINT pos) 
+{
+    for (const POINT& monster : monsterPos) 
+    {
+        if (pos.x == monster.x && pos.y == monster.y) 
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool CanSpawn(POINT pos)
 {
     if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
@@ -366,61 +379,75 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case 3:
                 {
-                    for (int dir = 0; dir < gun.size(); dir++) 
+                    // TODO. 총알 위치 갱신 및 피격 판정
+                    using It = list<pair<int, POINT>>::iterator;
+                    for (It it = gun.begin(); it != gun.end();)
                     {
-                        // TODO. 총알 위치 갱신
-                        for (int i = 0; i < gun[dir].size(); ++i)
+                        // 반복자 위치 갱신
+                        POINT bullet = it->second;
+
+                        switch (it->first)
                         {
-                            POINT bullet = gun[dir][i];
-
-                            switch (dir)
-                            {
-                            case 0:
-                                bullet.x -= 1;
-                                bullet.y -= 1;
-                                break;
-                            case 1:
-                                bullet.x += 1;
-                                bullet.y -= 1;
-                                break;
-                            case 2:
-                                bullet.x -= 1;
-                                bullet.y += 1;
-                                break;
-                            case 3:
-                                bullet.x += 1;
-                                bullet.y += 1;
-                                break;
-                            case 4:
-                                bullet.x -= 1;
-                                break;
-                            case 5:
-                                bullet.x += 1;
-                                break;
-                            case 6:
-                                bullet.y -= 1;
-                                break;
-                            case 7:
-                                bullet.y += 1;
-                                break;
-                            default:
-                                break;
-                            }
-
-                            // 1. 범위, 장애물
-                            if (!isInRange(bullet) || isObstacle(bullet)) 
-                            {
-                                // 제거
-                            }
-
-                            // 2. 몬스터 위치 
-                            // 제거
-
-                            // 3. 그렇지 않으면 위치 갱신
+                        case 0:
+                            bullet.x -= 1;
+                            bullet.y -= 1;
+                            break;
+                        case 1:
+                            bullet.x += 1;
+                            bullet.y -= 1;
+                            break;
+                        case 2:
+                            bullet.x -= 1;
+                            bullet.y += 1;
+                            break;
+                        case 3:
+                            bullet.x += 1;
+                            bullet.y += 1;
+                            break;
+                        case 4:
+                            bullet.x -= 1;
+                            break;
+                        case 5:
+                            bullet.x += 1;
+                            break;
+                        case 6:
+                            bullet.y -= 1;
+                            break;
+                        case 7:
+                            bullet.y += 1;
+                            break;
+                        default:
+                            break;
                         }
 
-                        //  TODO. 몬스터와 충돌 처리
-                        
+                        // 1. 범위, 장애물
+                        if (!isInRange(bullet) || isObstacle(bullet))
+                        {
+                            // 제거
+                            it = gun.erase(it);
+                            continue;
+                        }
+
+                        // 2. 사격 판정
+                        bool hit = false;
+
+                        for (const POINT& monster : monsterPos)
+                        {
+                            if (bullet.x == monster.x && bullet.y == monster.y)
+                            {
+                                hit = true;
+                                it = gun.erase(it);
+                                // TODO. 몬스터 제거
+                                //  TODO. 몬스터와 충돌 처리
+                                break;
+                            }
+                        }
+
+                        if (!hit)
+                        {
+                            it->second = bullet;
+                            it = next(it);
+                        }
                     }
                 }
                 break;
