@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <queue>
 #include <deque>
+#include <list>
 #include <random>
 
 #include "pch.h"
@@ -111,7 +112,9 @@ bool pUp = false;
 bool gameOver = false;
 bool isWaiting = false;
 
-vector<deque<POINT>> gun(8);
+// 총알 관리
+// TODO. 자료구조 고민해 보기
+list<POINT> gun(8);
 #pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
@@ -532,77 +535,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 bullet.x -= 1;
                 bullet.y -= 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[0].push_back(bullet);
-                }
             }
             else if (right && up) 
             {
                 bullet.x += 1;
                 bullet.y -= 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[1].push_back(bullet);
-                }
             }
             else if (left && down) 
             {
                 bullet.x -= 1;
                 bullet.y += 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[2].push_back(bullet);
-                }
             }
             else if (right && down) 
             {
                 bullet.x += 1;
                 bullet.y += 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[3].push_back(bullet);
-                }
             }
             else if (left)
             {
                 bullet.x -= 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet)) 
-                {
-                    gun[4].push_back(bullet);
-                }
             }
             else if (right)
             {
                 bullet.x += 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[5].push_back(bullet);
-                }
             }
             else if (up)
             {
                 bullet.y -= 1;
-
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[6].push_back(bullet);
-                }
             }
             else if (down)
             {
                 bullet.y += 1;
+            }
 
-                if (isInRange(bullet) && !isObstacle(bullet))
-                {
-                    gun[7].push_back(bullet);
-                }
+            if (isInRange(bullet) && !isObstacle(bullet))
+            {
+                gun.push_back(bullet);
             }
             ///////////////////////////////////////////////
 
@@ -692,13 +660,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 // 총알 표시
                 SelectObject(scr, Bullet); 
-                for (const deque<POINT>& bulletDir : gun) 
+                using It = list<POINT>::iterator;
+                for (It it = gun.begin(); it != gun.end();)
                 {
-                    for (int i = 0; i < bulletDir.size(); ++i) 
-                    {
-                        POINT bullet = bulletDir[i];
-                        BitBlt(back, bullet.x* cell, bullet.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
-                    }
+                    POINT bullet = *it;
+                    BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    it = next(it);
                 }
             }
             if (!gameOver && isWaiting)
@@ -716,13 +683,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 // 총알 표시
                 SelectObject(scr, Aisle);
-                for (const deque<POINT>& bulletDir : gun)
+                using It = list<POINT>::iterator;
+                for (It it = gun.begin(); it != gun.end();)
                 {
-                    for (int i = 0; i < bulletDir.size(); ++i)
-                    {
-                        POINT bullet = bulletDir[i];
-                        BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-                    }
+                    POINT bullet = *it;
+                    BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    it = next(it);
                 }
             }
             else if (gameOver)
