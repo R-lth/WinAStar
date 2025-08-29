@@ -16,6 +16,8 @@ void Game::init()
 void Game::update()
 {
     // TODO. 타이머 및 입풋 처리
+
+    // 
 }
 
 void Game::render(HDC hdc, HINSTANCE hInst)

@@ -30,53 +30,11 @@ public:
     void renderPlay();
     void renderEnd();
 
-// TODO. 접근 지정자를 private로 변경하기
+// TODO. 함수. 접근 지정자를 private로 변경하기
 // init()과 update() 그리고 render()에 옮기기
 public:
-    vector<vector<int>> gridGround() 
-    {
-        vector<vector<int>> grid(20, vector<int>(20, 0));
-
-        // 모서리와 통로
-        for (int i = 0; i < 20; ++i)
-        {
-            int v = (i >= 7 && i < 13) ? 0 : 1;
-            grid[0][i] = v;
-            grid[19][i] = v;
-            grid[i][0] = v;
-            grid[i][19] = v;
-        }
-
-        return grid;
-    }
-    list<pair<int, POINT>> setGun(int dir) 
-    {
-        return list<pair<int, POINT>>(dir);
-    };
-
-    bool CollideWithPlayer(POINT pos)
-    {
-        return (pos.x == playerBmp.x && pos.y == playerBmp.y);
-    }
-
-    bool CollideWithOtherMonsters(int id, POINT pos)
-    {
-        for (const pair<int, POINT>& it : monsterPos)
-        {
-            if (id == it.first)
-            {
-                continue;
-            }
-
-            POINT other = it.second;
-            if (pos.x == other.x && pos.y == other.y)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    void setPathInfo();
+    vector<deque<POINT>> getPathInfo();
 
 // TODO. 접근 지정자 수정
 public:
@@ -124,7 +82,4 @@ public:
     HBITMAP bulletBmp;
     HBITMAP monsterBmp[2]; // Character1, Character2
     HBITMAP deadBmp;
-
-    // TODO. 각각 플레이어하고 몬스터에 옮기기
-    bool mFilp = false;
 };

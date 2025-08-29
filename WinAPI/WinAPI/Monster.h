@@ -29,4 +29,6 @@ private:
     POINT pos;
     Collision collistion;
     map<int, POINT> monsterPos;
+    // TODO. 몬스터 좌우반전
+    bool mFilp = false;
 };
