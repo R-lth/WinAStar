@@ -55,15 +55,15 @@ bool isObstacle(POINT pos)
 
 bool CollideWithOtherMonsters(int id, POINT pos)
 {
-    for (int i = 0; i < monsterPos.size(); ++i) 
+    for (const pair<int, POINT>& it : monsterPos) 
     {
-        if (id == i) 
+        if (id == it.first) 
         {
             continue;
         }
 
-        POINT other = monsterPos[i];
-        if (pos.x == other.x && pos.y == other.y) 
+        POINT other = it.second;
+        if (pos.x == other.x && pos.y == other.y)
         {
             return true;
         }
@@ -103,11 +103,11 @@ bool CanSpawn(POINT pos)
         return false;
     }
 
-    for (const deque<POINT>& monsterPath : pathInfo) 
+    for (const deque<POINT>& path : pathInfo) 
     {
-        for (const POINT& monsterPos : monsterPath) 
+        for (const POINT& monster : path) 
         {
-            if (pos.x == monsterPos.x && pos.y == monsterPos.y)
+            if (pos.x == monster.x && pos.y == monster.y)
             {
                 return false;
             }
@@ -321,8 +321,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         next = pathInfo[id].front();
                         pathInfo[id].pop_front();
                     }
-                   
-                    // 2. 충돌 처리
+                    
                     if (!isInRange(monsterPos[id]) || isObstacle(monsterPos[id]))
                     {
                         continue;
@@ -375,7 +374,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     deque<POINT> path = aStar.findPath(monster, player, playGrid);
                     pathInfo.emplace_back(path);
                     int id = pathInfo.size() - 1;
-                    monsterPos.insert({id, monster});
+                    monsterPos.insert({ id, monster });
                 }
             }
                 break;
@@ -438,11 +437,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             if (bullet.x == monsterPos[id].x && bullet.y == monsterPos[id].y)
                             {
                                 hit = true;
+                                monsterPos.erase(id);
                                 it = gun.erase(it);
-                                //  TODO. 몬스터와 충돌 처리 (몬스터 제거)
-
-
-
                                 break;
                             }
                         }
@@ -484,7 +480,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // TODO. Game 객체로 프레임으로 입력 처리를 받아서, 자연스러운 입력 구현
             POINT next = player;
 
-            // TODO. 이동 키 WASD, 사격 키 ← → ↑ ↓
             bool a = GetAsyncKeyState(0x41) & 0x8000;
             bool d = GetAsyncKeyState(0x44) & 0x8000;
             bool w = GetAsyncKeyState(0x57) & 0x8000;
@@ -562,7 +557,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             ///////////////////////////////////////////////
             int dir = 0;
             POINT bullet = player;
-
 
             if (left && up)
             {
