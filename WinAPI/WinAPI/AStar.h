@@ -4,20 +4,20 @@
 #include <queue>
 #include <map>
 #include <deque>
-#include "GameState.h"
+#include "Windows.h"
 #include "Types.h"
 
 using namespace std;
 
 struct Node
 {
-	Position current;
-	Position parent;
+	POINT current;
+	POINT parent;
 	float gCost;
 	float hCost;
 };
 
-inline const bool operator< (const Position& a, const Position& b)
+inline const bool operator< (const POINT& a, const POINT& b)
 {
 	return (a.x == b.x) ? a.y < b.y : a.x < b.x;
 }
@@ -33,18 +33,16 @@ struct Compare
 class AStar
 {
 public:
-	deque<Position> findPath(Position start, Position goal);
+	deque<POINT> findPath(POINT start, POINT goal, const vector<vector<int>> grid);
 
 private:
-	deque<Position> getPath(Position character, map<Position, Position> visited);
-	float heuristic(Position next, Position goal);
+	deque<POINT> getPath(POINT character, map<POINT, POINT> visited);
+	float heuristic(POINT next, POINT goal);
 
 private:
-	const std::vector<pair<Position, float>> direction =
+	const std::vector<pair<POINT, float>> direction =
 	{
 		{ {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
 		{ {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
 	};
-
-	GameState gameState;
 };

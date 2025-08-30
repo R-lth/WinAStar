@@ -124,30 +124,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AStar.h" />
-    <ClInclude Include="Collision.h" />
-    <ClInclude Include="GameState.h" />
-    <ClInclude Include="Gun.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="Input.h" />
-    <ClInclude Include="Monster.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Setting.h" />
-    <ClInclude Include="Singleton.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="WinAPI.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AStar.cpp" />
-    <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="Gun.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Input.cpp" />
-    <ClCompile Include="Monster.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="WinAPI.cpp" />
   </ItemGroup>
   <ItemGroup>

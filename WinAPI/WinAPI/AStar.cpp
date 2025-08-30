@@ -1,9 +1,9 @@
 ﻿#include "AStar.h"
 
-deque<Position> AStar::findPath(Position start, Position goal)
+deque<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>> grid)
 {
 	priority_queue<Node, vector<Node>, Compare> pq;
-	map<Position, Position> visited;
+	map<POINT, POINT> visited;
 
 	// 초기화
 	Node startNode;
@@ -39,20 +39,20 @@ deque<Position> AStar::findPath(Position start, Position goal)
 		}
 
 		// 이웃 탐색
-		for (const pair<Position, float>& dir : direction)
+		for (const pair<POINT, float>& dir : direction)
 		{
 			int nextY = node.current.y + dir.first.y;
 			int nextX = node.current.x + dir.first.x;
-			Position next = { nextX, nextY };
+			POINT next = { nextX, nextY };
 			
-			int n = gameState.n;
+			int n = 20;
 			
 			if (nextX < 0 || nextX >= n || nextY < 0 || nextY >= n) 
 			{
 				continue;
 			}
 
-			if (gameState.grid[nextY][nextX]) 
+			if (grid[nextY][nextX]) 
 			{
 				continue;
 			}
@@ -76,10 +76,10 @@ deque<Position> AStar::findPath(Position start, Position goal)
 	return {};
 }
 
-deque<Position> AStar::getPath(Position current, map<Position, Position> visited)
+deque<POINT> AStar::getPath(POINT current, map<POINT, POINT> visited)
 {
-	deque<Position> path = {};
-	Position backtracking = current;
+	deque<POINT> path = {};
+	POINT backtracking = current;
 
 	while (backtracking.x != -1 && backtracking.y != -1) 
 	{
@@ -99,7 +99,7 @@ deque<Position> AStar::getPath(Position current, map<Position, Position> visited
 	return path;
 }
 
-float AStar::heuristic(Position next, Position goal)
+float AStar::heuristic(POINT next, POINT goal)
 {
 	int diffX = next.x - goal.x;
 	int diffY = next.y - goal.y;

@@ -4,18 +4,132 @@
 #include "framework.h"
 #include "WinAPI.h"
 
+#include <map>
+#include <queue>
+#include <deque>
+#include <list>
+#include <random>
+
 #include "pch.h"
-#include "Game.h"
+#include "AStar.h"
 
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 HWND hWnd;                                      // 창 핸들 전역으로 초기화.
-HDC hdc;
 
-// 게임
-Game game;
+#pragma region 전역
+RECT rect;
+
+AStar aStar;
+POINT player = { 10,10 };
+// index : 몬스터 ID, 값 : 몬스터 경로
+vector<deque<POINT>> pathInfo;
+// 몬스터 ID와 몬스터 현재 위치
+map<int, POINT> monsterPos;
+
+// 0 : 길, 1 : 벽
+vector<vector<int>> playGrid(20, vector<int>(20, 0));
+vector<vector<int>> endGrid(20, vector<int>(20, 0));
+
+const std::vector<pair<POINT, float>> direction =
+{
+    { {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
+    { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
+};
+
+const int row = static_cast<int>(playGrid.size());
+const int column = static_cast<int>(playGrid[0].size());
+const int cell = 20;
+
+bool isInRange(POINT pos)
+{
+    return (pos.x >= 0 && pos.x < column && pos.y >= 0 && pos.y < row);
+}
+
+bool isObstacle(POINT pos)
+{
+    return (playGrid[pos.y][pos.x]);
+}
+
+bool CollideWithOtherMonsters(int id, POINT pos)
+{
+    for (const pair<int, POINT>& it : monsterPos) 
+    {
+        if (id == it.first) 
+        {
+            continue;
+        }
+
+        POINT other = it.second;
+        if (pos.x == other.x && pos.y == other.y)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool CollideWithPlayer(POINT pos) 
+{
+    return (pos.x == player.x && pos.y == player.y);
+}
+
+bool CollideWithAllMonsters(POINT pos) 
+{
+    for (const pair<int, POINT>& it : monsterPos) 
+    {
+        POINT monster = it.second;
+        if (pos.x == monster.x && pos.y == monster.y)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool CanSpawn(POINT pos)
+{
+    if (pos.x < 0 || pos.x >= column || pos.y < 0 || pos.y >= row)
+    {
+        return false;
+    }
+
+    if (playGrid[pos.y][pos.x])
+    {
+        return false;
+    }
+
+    for (const deque<POINT>& path : pathInfo) 
+    {
+        for (const POINT& monster : path) 
+        {
+            if (pos.x == monster.x && pos.y == monster.y)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool mFilp = false;
+
+bool pHoriz = false;
+bool pFilp = false;
+bool pUp = false;
+
+bool gameOver = false;
+bool isWaiting = false;
+
+// 총알 관리
+// TODO. 자료구조 고민해 보기
+list<pair<int, POINT>> gun(8);
+#pragma endregion
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -45,7 +159,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     MSG msg = {};
-    game.init(hWnd);
 
     // 기본 메시지 루프입니다:
     while (msg.message != WM_QUIT)
@@ -57,9 +170,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else
         {
-            // TODO. 프레임으로 제어
-            //game.update();
-            //game.render(hdc, hInst);
+            int a = 0;
         }
     }
 
@@ -139,35 +250,604 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    int width = GWinSizeX;
+    int height = GWinSizeY;
+
     PAINTSTRUCT ps;
+    HDC hdc, back, scr;
+    HBITMAP bmp, connect;
+    HBITMAP Aisle, Brick, Character1, Character2, Bullet, Goal, GoalLeft, GoalRight, GoalUp;
+    HBITMAP Dead, Black, Ch1, Ch2, Ch3, Ch4, Ch5, Ch6, Ch7;
 
     switch (message)
     {
+        case WM_COMMAND:
+        {
+            int wmId = LOWORD(wParam);
+            switch (wmId)
+            {
+            case IDM_EXIT:
+                DestroyWindow(hWnd);
+                break;
+            default:
+                return DefWindowProc(hWnd, message, wParam, lParam);
+            }
+        }
+        break;
+        case WM_CREATE:
+        {
+            // 화면 크기
+            width = rect.right - rect.left;
+            height = rect.bottom - rect.top;
+
+            // 그리드 설정
+            for (int i = 0; i < 20; ++i)
+            {
+                playGrid[0][i] = 1;
+                playGrid[19][i] = 1;
+                playGrid[i][0] = 1;
+                playGrid[i][19] = 1;
+            }
+
+            for (int i = 7; i < 13; ++i)
+            {
+                playGrid[0][i] = 0;
+                playGrid[19][i] = 0;
+                playGrid[i][0] = 0;
+                playGrid[i][19] = 0;
+            }
+
+            // 몬스터 생성 위치 관련 랜덤 값을 위한 함수
+            srand(time(NULL));
+
+            // 타이머
+            SetTimer(hWnd, 1, 150 * 2, NULL);
+            SetTimer(hWnd, 2, 1500, NULL);
+            SetTimer(hWnd, 3, 150, NULL);
+        }
+        break;
         case WM_TIMER:
         {
-            // TODO. waiting 시 input 불가
-            game.update(hWnd, wParam);
+            switch (wParam)
+            {
+            case 1:
+            {
+                for (int id = 0; id < monsterPos.size(); ++id) 
+                {
+                    POINT next = monsterPos[id];
+
+                    while (!pathInfo[id].empty() && monsterPos[id].x == next.x && monsterPos[id].y == next.y) 
+                    {   
+                        next = pathInfo[id].front();
+                        pathInfo[id].pop_front();
+                    }
+                    
+                    if (!isInRange(monsterPos[id]) || isObstacle(monsterPos[id]))
+                    {
+                        continue;
+                    }
+                    
+                    if (CollideWithOtherMonsters(id, monsterPos[id]))
+                    {
+                        continue;
+                    }
+
+                    // 키가 눌리지 않아도, 플레이어와 몬스터 간의 충돌이 가능하도록
+                    if (CollideWithPlayer(monsterPos[id]))
+                    {
+                        isWaiting = true;
+                        KillTimer(hWnd, 1);
+                        KillTimer(hWnd, 2);
+                        KillTimer(hWnd, 3);
+
+                        // 2초 후 
+                        SetTimer(hWnd, 4, 2000, NULL);
+                        break;
+                    }
+                    else 
+                    {
+                        // TODO. A*의 대각선 {x, y} 값 고려하기
+                        monsterPos[id] = next;
+                        deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
+                        pathInfo[id] = path;
+                    }
+                }
+            }
+                break;
+            case 2:
+            {
+                // 몬스터 생성
+                const vector<POINT> center =
+                {
+                    {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
+                    {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
+                    {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
+                    {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
+                };
+
+                int i = rand() % center.size();
+
+                POINT monster = center[i];
+
+                if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster)) 
+                {
+                    deque<POINT> path = aStar.findPath(monster, player, playGrid);
+                    pathInfo.emplace_back(path);
+                    int id = pathInfo.size() - 1;
+                    monsterPos.insert({ id, monster });
+                }
+            }
+                break;
+            case 3:
+                {
+                    // TODO. 총알 위치 갱신 및 피격 판정
+                    using It = list<pair<int, POINT>>::iterator;
+                    for (It it = gun.begin(); it != gun.end();)
+                    {
+                        // 반복자 위치 갱신
+                        POINT bullet = it->second;
+
+                        switch (it->first)
+                        {
+                        case 0:
+                            bullet.x -= 1;
+                            bullet.y -= 1;
+                            break;
+                        case 1:
+                            bullet.x += 1;
+                            bullet.y -= 1;
+                            break;
+                        case 2:
+                            bullet.x -= 1;
+                            bullet.y += 1;
+                            break;
+                        case 3:
+                            bullet.x += 1;
+                            bullet.y += 1;
+                            break;
+                        case 4:
+                            bullet.x -= 1;
+                            break;
+                        case 5:
+                            bullet.x += 1;
+                            break;
+                        case 6:
+                            bullet.y -= 1;
+                            break;
+                        case 7:
+                            bullet.y += 1;
+                            break;
+                        default:
+                            break;
+                        }
+
+                        // 1. 범위, 장애물
+                        if (!isInRange(bullet) || isObstacle(bullet))
+                        {
+                            // 제거
+                            it = gun.erase(it);
+                            continue;
+                        }
+
+                        // 2. 사격 판정
+                        bool hit = false;
+
+                        for (int id = 0; id < monsterPos.size(); ++id) 
+                        {
+                            if (bullet.x == monsterPos[id].x && bullet.y == monsterPos[id].y)
+                            {
+                                hit = true;
+                                monsterPos.erase(id);
+                                it = gun.erase(it);
+                                break;
+                            }
+                        }
+
+                        if (!hit)
+                        {
+                            it->second = bullet;
+                            it = next(it);
+                        }
+                    }
+                }
+                break;
+            case 4:
+                {
+                    
+                    KillTimer(hWnd, 4);
+
+                    if (isWaiting) 
+                    {
+                        isWaiting = false;
+                        // 게임 종료 
+                        gameOver = true;              
+
+                        RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+                        // TODO. 바로 업데이트
+                        UpdateWindow(hWnd);
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+        }
+        break;
+        case WM_KEYDOWN:  
+        {
+            // TODO. Game 객체로 프레임으로 입력 처리를 받아서, 자연스러운 입력 구현
+            POINT next = player;
+
+            bool a = GetAsyncKeyState(0x41) & 0x8000;
+            bool d = GetAsyncKeyState(0x44) & 0x8000;
+            bool w = GetAsyncKeyState(0x57) & 0x8000;
+            bool s = GetAsyncKeyState(0x53) & 0x8000;
+
+            bool left = GetAsyncKeyState(VK_LEFT) & 0x8000;
+            bool right = GetAsyncKeyState(VK_RIGHT) & 0x8000;
+            bool up = GetAsyncKeyState(VK_UP) & 0x8000;
+            bool down = GetAsyncKeyState(VK_DOWN) & 0x8000;
+
+            if (a && w) 
+            {
+                next.x -= 1;
+                next.y -= 1;
+                // 
+                pHoriz = false;
+                pUp = true;
+            }
+            else if (d && w) 
+            {
+                next.x += 1;
+                next.y -= 1;
+                //
+                pHoriz = false;
+                pUp = true;
+            }
+            else if (a && s) 
+            {
+                next.x -= 1;
+                next.y += 1;
+                //
+                pHoriz = false;
+                pUp = false;
+            }
+            else if (d && s) 
+            {
+                next.x += 1;
+                next.y += 1;
+                // 
+                pHoriz = false;
+                pUp = false;
+            }
+            else if (a) 
+            {
+                next.x -= 1;
+                pHoriz = true;
+                pFilp = !pFilp;
+            }
+            else if (d) 
+            {
+                next.x += 1;
+                pHoriz = true;
+                pFilp = !pFilp;
+            }
+            else if (w) 
+            {
+                next.y -= 1;
+                pHoriz = false;
+                pUp = true;
+            }
+            else if (s) 
+            {
+                next.y += 1;
+                pHoriz = false;
+                pUp = false;
+            }
+
+            // 플레이어 충돌 처리
+            if (!isInRange(next) || isObstacle(next))
+            {
+                break;
+            }
+
+            // 총알 생성
+            ///////////////////////////////////////////////
+            int dir = 0;
+            POINT bullet = player;
+
+            if (left && up)
+            {
+                dir = 0;
+                bullet.x -= 1;
+                bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (right && up)
+            {
+                dir = 1;
+                bullet.x += 1;
+                bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (left && down)
+            {
+                dir = 2;
+                bullet.x -= 1;
+                bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (right && down)
+            {
+                dir = 3;
+                bullet.x += 1;
+                bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (left)
+            {
+                dir = 4;
+                bullet.x -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (right)
+            {
+                dir = 5;
+                bullet.x += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (up)
+            {
+                dir = 6;
+                bullet.y -= 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            else if (down)
+            {
+                dir = 7;
+                bullet.y += 1;
+
+                if (isInRange(bullet) && !isObstacle(bullet))
+                {
+                    gun.push_back({ dir, bullet });
+                }
+            }
+            ///////////////////////////////////////////////
+
+            player = next;
+
+            // 플레이어 이동에 따른 몬스터 경로 갱신
+            for (int id = 0; id < monsterPos.size(); ++id) 
+            {
+                deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
+                pathInfo[id] = path;     
+            }
+
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
         break;
         case WM_PAINT:
         {
-            // 실제 화면 = 앞버퍼
+            // 앞면 버퍼. 실제 화면
             hdc = BeginPaint(hWnd, &ps);
-            // 그리기
-            game.render(hdc, hInst);
+
+#pragma region Render
+            // 실제 화면과 호환되는 후면 버퍼. 실제 화면에 제출할 DC 
+            back = CreateCompatibleDC(hdc);
+            bmp = CreateCompatibleBitmap(hdc, width, height); // dc와 호환되는 비트맵
+            connect = (HBITMAP)SelectObject(back, bmp);
+
+            // 리소스 DC 생성
+            scr = CreateCompatibleDC(hdc);
+
+            // 비트맵 로드
+            Aisle = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
+            Brick = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
+            // 총알 = 몬스터
+            Character1 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER1));
+            Character2 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER2));
+            // 플레이어
+            Goal = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
+            GoalLeft = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALLEFT));
+            GoalRight = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALRIGHT));
+            GoalUp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALUP));
+            Dead = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_DEAD));
+            Black = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BLACK));
+            Ch1 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH1));
+            Ch2 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH2));
+            Ch3 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH3));
+            Ch4 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH4));
+            Ch5 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH5));
+            Ch6 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH6));
+            Ch7 = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH7));
+            Bullet = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BULLET));
+
+            /////////////////////////////////////////////////////////
+            for (int y = 0; y < row; ++y)
+            {
+                for (int x = 0; x < column; ++x)
+                {
+                    HBITMAP tile = playGrid[y][x] ? Brick : Aisle;
+                    SelectObject(scr, tile);
+                    BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
+            }
+
+            if (!gameOver && !isWaiting) 
+            {
+                // 플레이어 표시
+                if (pHoriz)
+                {
+                    HBITMAP pSprite = pFilp ? GoalLeft : GoalRight;
+                    SelectObject(scr, pSprite);
+                }
+                else
+                {
+                    HBITMAP pSprite = pUp ? GoalUp : Goal;
+                    SelectObject(scr, pSprite);
+                }
+                BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+
+                // 몬스터 표시
+                HBITMAP mSprite = mFilp ? Character1 : Character2;
+                SelectObject(scr, mSprite);
+                mFilp = !mFilp;
+
+                for (const pair<int, POINT>& it : monsterPos) 
+                {
+                    POINT pos = it.second;
+                    BitBlt(back, pos.x* cell, pos.y* cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
+
+                // 총알 표시
+                SelectObject(scr, Bullet); 
+                using It = list<pair<int, POINT>>::iterator;
+                for (It it = gun.begin(); it != gun.end();)
+                {
+                    POINT bullet = it->second;
+                    BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    it = next(it);
+                }
+            }
+            if (!gameOver && isWaiting)
+            {
+                // 플레이어 표시
+                SelectObject(scr, Dead);
+                BitBlt(back, player.x * cell, player.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+
+                // 장애물 표시
+                SelectObject(scr, Dead);
+                for (const pair<int, POINT>& it : monsterPos)
+                {
+                    POINT pos = it.second;
+                    BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                }
+
+                // 총알 표시
+                SelectObject(scr, Aisle);
+                using It = list<pair<int, POINT>>::iterator;
+                for (It it = gun.begin(); it != gun.end();)
+                {
+                    POINT bullet = it->second;
+                    BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    it = next(it);
+                }
+            }
+            else if (gameOver)
+            {
+                // 게임 종료 화면
+                for (int y = 0; y < row; ++y)
+                {
+                    for (int x = 0; x < column; ++x)
+                    {
+                        SelectObject(scr, Black);
+                        BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                    }
+                }
+
+                SelectObject(scr, Ch1);
+                BitBlt(back, 9 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch2);
+                BitBlt(back, 10 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch3);
+                BitBlt(back, 11 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch4);
+                BitBlt(back, 12 * cell, 6 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch5);
+                BitBlt(back, 10 * cell, 7 * cell, cell, cell, scr, 0, 0, SRCCOPY); 
+                SelectObject(scr, Ch4);
+                BitBlt(back, 11 * cell, 7 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch6);
+                BitBlt(back, 10 * cell, 8  * cell, cell, cell, scr, 0, 0, SRCCOPY);
+                SelectObject(scr, Ch7);
+                BitBlt(back, 11 * cell, 8 * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            }
+
+            // 실제 화면 출력
+            BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
+#pragma endregion
+            // 해제
+            /*
+             * DC는 항상 어떤 GDI 객체를 선택하고 있어야 함.
+             * 복원 순서
+             * ① SelectObject(back, bmp);	  후면 버퍼 DC에 비트맵 붙이기
+             * ② 그리기
+             * ③ SelectObject(back, connect); 원래대로 복원
+             *
+             * ① connect = (HBITMAP)SelectObject(back, bmp);
+             * → 기존에 back DC에 선택돼 있던 GDI 객체를 connect에 저장해 놓고, bmp를 back DC에 선택해서 그릴 수 있게 한다.
+             * → select는 기존 반환값을 전달하되, 정작 새로운 GDI 객체를 선택하게 한다.
+            */
+            SelectObject(back, connect);
+            // 
+            DeleteObject(Aisle);
+            DeleteObject(Brick);
+            DeleteObject(Character1);
+            DeleteObject(Character2);
+            DeleteObject(Bullet);
+            DeleteObject(Goal);
+            DeleteObject(GoalLeft);
+            DeleteObject(GoalRight);
+            DeleteObject(GoalUp);
+            DeleteObject(Dead);
+            DeleteObject(Black);
+            DeleteObject(Ch1);
+            DeleteObject(Ch2);
+            DeleteObject(Ch3);
+            DeleteObject(Ch4);
+            DeleteObject(Ch5);
+            DeleteObject(Ch6);
+            DeleteObject(Ch7);
+            //
+            DeleteObject(bmp);
+            DeleteObject(connect);
+            //
+            DeleteDC(back);
+            DeleteDC(scr);
+
             // 실제 화면에 최종 제출
             EndPaint(hWnd, &ps);
         }
         break;
         case WM_DESTROY:
         {
+            
             PostQuitMessage(0);
         }
         break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
-    
-    return 0;
+        return 0;
 }
 
