@@ -14,7 +14,7 @@ struct GameState
 
 	// 몬스터 정보
 	AStar aStar;
-	vector<deque<POINT>> pathInfo;
+	vector<deque<Position>> pathInfo;
 	map<int, Position> monsterPos;
 };
 

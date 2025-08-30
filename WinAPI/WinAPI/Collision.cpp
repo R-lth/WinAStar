@@ -1,25 +1,25 @@
 ﻿#include "Collision.h"
 
-bool Collision::isInRange(const POINT pos)
+bool Collision::isInRange(const Position pos)
 {
     return (pos.x >= 0 && pos.x < gameState.n && pos.y >= 0 && pos.y < gameState.n);
 }
 
-bool Collision::isObstacle(const POINT pos)
+bool Collision::isObstacle(const Position pos)
 {
     return (gameState.grid[pos.y][pos.x]);
 }
 
-bool Collision::okToGo(const POINT pos)
+bool Collision::okToGo(const Position pos)
 {
     return (isInRange(pos) && !isObstacle(pos));
 }
 
-bool Collision::checkPlayerMonsterCollision(const POINT pos)
+bool Collision::checkPlayerMonsterCollision(const Position pos)
 {
-    for (const pair<int, POINT>& it : gameState.monsterPos)
+    for (const pair<int, Position>& it : gameState.monsterPos)
     {
-        POINT monster = it.second;
+        Position monster = it.second;
         if (pos.x == monster.x && pos.y == monster.y)
         {
             gameState.monsterPos.erase(it.first);
@@ -30,7 +30,7 @@ bool Collision::checkPlayerMonsterCollision(const POINT pos)
     return false;
 }
 
-bool Collision::checkMonsterCollision(const POINT pos)
+bool Collision::checkMonsterCollision(const Position pos)
 {
     for (int i = 0; i < gameState.monsterPos.size(); ++i)
     {
@@ -44,7 +44,7 @@ bool Collision::checkMonsterCollision(const POINT pos)
     return false;
 }
 
-bool Collision::checkMonsterCollision(const POINT pos, int id)
+bool Collision::checkMonsterCollision(const Position pos, int id)
 {
     for (int i = 0; i < gameState.monsterPos.size(); ++i)
     {
@@ -62,7 +62,7 @@ bool Collision::checkMonsterCollision(const POINT pos, int id)
     return false;
 }
 
-bool Collision::shot(const POINT pos, list<pair<ShootDir, POINT>>::iterator& it)
+bool Collision::shot(const Position pos, list<pair<ShootDir, Position>>::iterator& it)
 {
     for (int id = 0; id < gameState.monsterPos.size(); ++id)
     {

@@ -2,12 +2,12 @@
 #include "Input.h"
 
 
-void Player::setPos(POINT pos)
+void Player::setPos(Position pos)
 {
     this->pos = pos;
 }
 
-POINT Player::getPos()
+Position Player::getPos()
 {
     return pos;
 }
@@ -27,11 +27,11 @@ bool Player::getFilp()
     return pFilp;
 }
 
-POINT Player::movePlayer(HWND hWnd)
+Position Player::movePlayer(HWND hWnd)
 {
     MoveDir dir = Input::Get().getMoveDir();
 
-    POINT next = pos;
+    Position next = pos;
     pHorizontal = false;
 
     switch (dir)
@@ -116,7 +116,7 @@ POINT Player::movePlayer(HWND hWnd)
 void Player::shoot()
 {
     ShootDir dir = Input::Get().getShootDir();
-    POINT bullet = pos;
+    Position bullet = pos;
 
     switch (dir)
     {

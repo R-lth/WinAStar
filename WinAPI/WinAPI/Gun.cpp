@@ -1,11 +1,11 @@
 ﻿#include "Gun.h"
 
-list<pair<ShootDir, POINT>>& Gun::getGun()
+list<pair<ShootDir, Position>>& Gun::getGun()
 {
     return gun;
 }
 
-void Gun::loadingBullets(pair<ShootDir, POINT> p)
+void Gun::loadingBullets(pair<ShootDir, Position> p)
 {
     if (collision.okToGo(p.second))
     {
@@ -15,10 +15,10 @@ void Gun::loadingBullets(pair<ShootDir, POINT> p)
 
 void Gun::shootBullets()
 {
-    using It = list<pair<ShootDir, POINT>>::iterator;
+    using It = list<pair<ShootDir, Position>>::iterator;
     for (It it = gun.begin(); it != gun.end();)
     {
-        POINT next = it->second;
+        Position next = it->second;
         switch (it->first)
         {
         case ShootDir::UpLeft:
