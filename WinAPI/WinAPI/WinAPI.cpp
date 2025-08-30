@@ -57,8 +57,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
         else
         {
-            game.update();
-            game.render(hdc, hInst);
+            // TODO. 프레임으로 제어
+            //game.update();
+            //game.render(hdc, hInst);
         }
     }
 
@@ -144,13 +145,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_TIMER:
         {
-            game.update();
+            game.update(hWnd, wParam);
         }
         break;
         break;
         case WM_PAINT:
         {
-            // 앞면 버퍼. 실제 화면
+            // 실제 화면 = 앞버퍼
             hdc = BeginPaint(hWnd, &ps);
             // 그리기
             game.render(hdc, hInst);
