@@ -1,19 +1,19 @@
-#pragma once
+ï»¿#pragma once
 
 #include <vector>
 #include <list>
 #include "AStar.h"
 #include "Resource.h"
 
-// TODO. Çì´õ ÀÎÅ¬·çµå Á¤¸®
-// »ç½Ç»ó resource.h´Â winAPI.h¿¡ Æ÷ÇÔµÅ ÀÖÀ½
+// TODO. í—¤ë” ì¸í´ë£¨ë“œ ì •ë¦¬
+// ì‚¬ì‹¤ìƒ resource.hëŠ” winAPI.hì— í¬í•¨ë¼ ìˆìŒ
 
 using namespace std;
 
-// TODO. Àü¹æ ¼±¾ğ
+// TODO. ì „ë°© ì„ ì–¸
 //class AStar;
 
-// TODO. ÇÁ·¹ÀÓ Á¦¾î
+// TODO. í”„ë ˆì„ ì œì–´
 
 class Game
 {
@@ -30,22 +30,16 @@ public:
     void renderPlay();
     void renderEnd();
 
-// TODO. ÇÔ¼ö. Á¢±Ù ÁöÁ¤ÀÚ¸¦ private·Î º¯°æÇÏ±â
-// init()°ú update() ±×¸®°í render()¿¡ ¿Å±â±â
+// TODO. í•¨ìˆ˜. ì ‘ê·¼ ì§€ì •ìë¥¼ privateë¡œ ë³€ê²½í•˜ê¸°
+// init()ê³¼ update() ê·¸ë¦¬ê³  render()ì— ì˜®ê¸°ê¸°
 public:
     void setPathInfo();
     vector<deque<POINT>> getPathInfo();
 
-// TODO. Á¢±Ù ÁöÁ¤ÀÚ ¼öÁ¤
+// TODO. ì ‘ê·¼ ì§€ì •ì ìˆ˜ì •
 public:
-    RECT rect;
-    int width;
-    int height;
-    const int cell = 20;
     const int n = 20;
-
-    POINT playerPos;
-    AStar aStar;
+    vector<vector<int>> grid;
 
     const vector<pair<POINT, float>> direction =
     {
@@ -53,24 +47,7 @@ public:
         { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
     };
 
-    const vector<POINT> uiSpawn
-    {
-        // index·Î char ÆÇ´Ü
-        // ´ëÃÊ¿øÀÇ
-        // ¿ÕÀÇ
-        // ¸ğÇè
-        {9, 6}, {10, 6}, {11, 6}, {12, 6},
-        {10, 7}, {11, 7},
-        {10, 8}, {11, 8}
-    };
-    
-    vector<vector<int>> grid;
-    // 
-    vector<deque<POINT>> pathInfo;
-
-    bool gameOver = false;
-    bool waiting = false;
-
+    //
     HDC back, scr;
     HBITMAP bmp, originalBmp;
 
@@ -82,4 +59,15 @@ public:
     HBITMAP bulletBmp;
     HBITMAP monsterBmp[2]; // Character1, Character2
     HBITMAP deadBmp;
+    //
+    const vector<POINT> uiSpawn
+    {
+        // indexë¡œ char íŒë‹¨
+        // ëŒ€ì´ˆì›ì˜
+        // ì™•ì˜
+        // ëª¨í—˜
+        {9, 6}, {10, 6}, {11, 6}, {12, 6},
+        {10, 7}, {11, 7},
+        {10, 8}, {11, 8}
+    };
 };

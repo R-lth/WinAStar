@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "windef.h"
 #include <vector>

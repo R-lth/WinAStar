@@ -1,4 +1,4 @@
-#include "Collision.h"
+﻿#include "Collision.h"
 
 bool Collision::isInRange(const POINT pos, const int n)
 {

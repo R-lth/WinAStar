@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "windef.h"
 #include <vector>
 #include <map>
@@ -8,7 +8,7 @@ using namespace std;
 
 class Collision
 {
-    // TODO. grid¿Í monsterPos¸¦ ¸Å¹ø ¸Å°³º¯¼ö·Î ¹Ş´Â °Í ´ë½Å ´Ù¸¥ ¹æ¹ıÀ» »ı°¢ÇØº¸±â
+    // TODO. gridì™€ monsterPosë¥¼ ë§¤ë²ˆ ë§¤ê°œë³€ìˆ˜ë¡œ ë°›ëŠ” ê²ƒ ëŒ€ì‹  ë‹¤ë¥¸ ë°©ë²•ì„ ìƒê°í•´ë³´ê¸°
 public:
     bool isInRange(const POINT pos, const int n);
 

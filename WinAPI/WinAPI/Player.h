@@ -1,7 +1,7 @@
-#pragma once
+ï»¿#pragma once
 
-// TODO. ±Ùµ¥ ÇÁ·¹ÀÓÀ¸·Î Á¦¾îÇÒ °Çµ¥ winproc ÇÔ¼ö ±âÁØÀ¸·Î
-// »ı°¢ÇÏ´Â °Å ¾Æ´Ô??????????????????????
+// TODO. ê·¼ë° í”„ë ˆì„ìœ¼ë¡œ ì œì–´í•  ê±´ë° winproc í•¨ìˆ˜ ê¸°ì¤€ìœ¼ë¡œ
+// ìƒê°í•˜ëŠ” ê±° ì•„ë‹˜??????????????????????
 
 #include "windef.h"
 #include <vector>
@@ -22,8 +22,8 @@ public:
 	~Player() = default;
 	
 public:
-    // TODO. gridÇÏ°í monsterPos´Â Àü¿ªÀ¸·Î Ã³¸®ÇÏ´Â °Ô ³ªÀºÁö
-    // ¾Æ´Ï¸é Game¿¡¼­ Ã¥ÀÓÁö´Â °Ô ³ªÀºÁö
+    // TODO. gridí•˜ê³  monsterPosëŠ” ì „ì—­ìœ¼ë¡œ ì²˜ë¦¬í•˜ëŠ” ê²Œ ë‚˜ì€ì§€
+    // ì•„ë‹ˆë©´ Gameì—ì„œ ì±…ì„ì§€ëŠ” ê²Œ ë‚˜ì€ì§€
 	void movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monsterPos);
     void shoot(const vector<vector<int>> grid, map<int, POINT>& monsterPos);
 

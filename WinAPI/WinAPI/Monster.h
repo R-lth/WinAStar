@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "windef.h"
 #include <vector>
@@ -28,7 +28,7 @@ private:
 
     POINT pos;
     Collision collistion;
-    map<int, POINT> monsterPos;
-    // TODO. ¸ó½ºÅÍ ÁÂ¿ì¹ÝÀü
+    
+    // TODO. ëª¬ìŠ¤í„° ì¢Œìš°ë°˜ì „
     bool mFilp = false;
 };

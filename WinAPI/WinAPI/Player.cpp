@@ -1,4 +1,4 @@
-#include "Player.h"
+ï»¿#include "Player.h"
 #include "Input.h"
 
 void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monsterPos)
@@ -55,28 +55,28 @@ void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monste
         pFilp = !pFilp;
     }
 
-    // °æ°è ¹× Àå¾Ö¹° °Ë»ç
+    // ê²½ê³„ ë° ì¥ì• ë¬¼ ê²€ì‚¬
     if (!collision.okToGo(pos, grid))
     {
         return;
     }
 
-    // Ãæµ¹ Ã³¸®
+    // ì¶©ëŒ ì²˜ë¦¬
     bool hit = collision.checkPlayerMonsterCollision(pos, monsterPos);
 
-    // ÀÌµ¿
+    // ì´ë™
     if (!hit) 
     {
         pos = next;
 
-        // TODO. ÇÃ·¹ÀÌ¾î ÀÌµ¿¿¡ µû¸¥ ¸ó½ºÅÍ °æ·Î °»½Å
-        // ÀÌ°Ç °ÔÀÓ °´Ã¼ÀÇ ¿ªÇÒÀÌ ¾Æ´Ò±î
+        // TODO. í”Œë ˆì´ì–´ ì´ë™ì— ë”°ë¥¸ ëª¬ìŠ¤í„° ê²½ë¡œ ê°±ì‹ 
+        // ì´ê±´ ê²Œì„ ê°ì²´ì˜ ì—­í• ì´ ì•„ë‹ê¹Œ
         for (int id = 0; id < monsterPos.size(); ++id)
         {
             pathInfo[id] = aStar.findPath(monsterPos[id], pos, grid);
         }
     }
-    // °ÔÀÓ Á¾·á
+    // ê²Œì„ ì¢…ë£Œ
     else 
     {
         isWaiting = true;
@@ -84,7 +84,7 @@ void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monste
         KillTimer(hWnd, 2);
         KillTimer(hWnd, 3);
 
-        // 2ÃÊ ÈÄ 
+        // 2ì´ˆ í›„ 
         SetTimer(hWnd, 4, 2000, NULL);
     }
 }

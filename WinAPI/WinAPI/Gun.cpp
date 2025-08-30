@@ -1,4 +1,4 @@
-#include "Gun.h"
+ï»¿#include "Gun.h"
 
 void Gun::spawnBullet(pair<ShootDir, POINT> p, const vector<vector<int>> grid)
 {
@@ -56,7 +56,7 @@ void Gun::shootBullet(const vector<vector<int>> grid, map<int, POINT>& monsterPo
 
         bool hit = false;
 
-        // TODO. collision ÄÄÆ÷³ÍÆ®°¡ ÇÇ°İ ÆÇÁ¤±îÁö °ü¸®ÇØ¾ß ÇÏ´Â°¡.
+        // TODO. collision ì»´í¬ë„ŒíŠ¸ê°€ í”¼ê²© íŒì •ê¹Œì§€ ê´€ë¦¬í•´ì•¼ í•˜ëŠ”ê°€.
         for (int id = 0; id < monsterPos.size(); ++id)
         {
             if (next.x == monsterPos[id].x && next.y == monsterPos[id].y)

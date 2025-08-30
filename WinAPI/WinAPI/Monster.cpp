@@ -1,4 +1,4 @@
-#include <random>
+ï»¿#include <random>
 #include "Monster.h"
 
 
@@ -10,7 +10,7 @@ void Monster::spawnMonster(const vector<vector<int>>& grid)
 
     if (collistion.okToGo(pos, grid) && !collistion.checkMonsterCollision(pos, monsterPos))
     {
-        // TODO. game °´Ã¼ÀÇ ¿ªÇÒ 
+        // TODO. game ê°ì²´ì˜ ì—­í•  
         //////////////////////////////////////////////
         deque<POINT> path = aStar.findPath(monster, player, playGrid);
         pathInfo.emplace_back(path);
@@ -26,7 +26,7 @@ void Monster::moveMonster(POINT player, const vector<vector<int>>& grid)
     {
         POINT next = monsterPos[id];
 
-        // TODO. game °´Ã¼ÀÇ ¿ªÇÒ?
+        // TODO. game ê°ì²´ì˜ ì—­í• ?
         while (!pathInfo[id].empty() && monsterPos[id].x == next.x && monsterPos[id].y == next.y)
         {
             next = pathInfo[id].front();
@@ -38,11 +38,11 @@ void Monster::moveMonster(POINT player, const vector<vector<int>>& grid)
             continue;
         }
 
-        // Å°°¡ ´­¸®Áö ¾Ê¾Æµµ, ÇÃ·¹ÀÌ¾î¿Í ¸ó½ºÅÍ °£ÀÇ Ãæµ¹ÀÌ °¡´ÉÇÏµµ·Ï
+        // í‚¤ê°€ ëˆŒë¦¬ì§€ ì•Šì•„ë„, í”Œë ˆì´ì–´ì™€ ëª¬ìŠ¤í„° ê°„ì˜ ì¶©ëŒì´ ê°€ëŠ¥í•˜ë„ë¡
         if (monsterPos[id].x != player.x  && monsterPos[id].y != player.y)
         {
-            // TODO. game °´Ã¼ÀÇ ¿ªÇÒ?
-            // TODO. A*ÀÇ ´ë°¢¼± {x, y} °ª °í·ÁÇÏ±â
+            // TODO. game ê°ì²´ì˜ ì—­í• ?
+            // TODO. A*ì˜ ëŒ€ê°ì„  {x, y} ê°’ ê³ ë ¤í•˜ê¸°
             monsterPos[id] = next;
             deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
             pathInfo[id] = path;

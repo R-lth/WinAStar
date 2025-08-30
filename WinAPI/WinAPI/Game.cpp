@@ -1,21 +1,21 @@
-#include "Game.h"
+ï»¿#include "Game.h"
 
 void Game::init()
 {
-    // È­¸é Å©±â
+    // í™”ë©´ í¬ê¸°
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
 
-    // ±×¸®µå ÃÊ±âÈ­
+    // ê·¸ë¦¬ë“œ ì´ˆê¸°í™”
 	grid = gridGround();
 
-    // ÇÃ·¹ÀÌ¾î À§Ä¡ ÃÊ±âÈ­
+    // í”Œë ˆì´ì–´ ìœ„ì¹˜ ì´ˆê¸°í™”
     playerPos = { 10,10 };
 }
 
 void Game::update()
 {
-    // TODO. Å¸ÀÌ¸Ó ¹× ÀÔÇ² Ã³¸®
+    // TODO. íƒ€ì´ë¨¸ ë° ì…í’‹ ì²˜ë¦¬
 
     // 
 }
@@ -24,7 +24,7 @@ void Game::render(HDC hdc, HINSTANCE hInst)
 {
 	renderBegin(hdc, hInst);
     renderPlay();
-    // ½ÇÁ¦ È­¸é Ãâ·Â
+    // ì‹¤ì œ í™”ë©´ ì¶œë ¥
     BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
 	renderEnd();
 }
@@ -36,12 +36,12 @@ void Game::renderBegin(HDC hdc, HINSTANCE hInst)
     bmp = CreateCompatibleBitmap(hdc, width, height); 
     originalBmp = (HBITMAP)SelectObject(back, bmp);
 
-    // ¶¥
+    // ë•…
     groundBmp[0] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_AISLE));
     groundBmp[1] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BRICK));
     // 
     blackBmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BLACK));
-    // UI ÅØ½ºÅÍ
+    // UI í…ìŠ¤í„°
     uiTextBmp[0] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH1));
     uiTextBmp[1] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH2));
     uiTextBmp[2] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH3));
@@ -50,17 +50,17 @@ void Game::renderBegin(HDC hdc, HINSTANCE hInst)
     uiTextBmp[5] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH6));
     uiTextBmp[6] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CH7));
     
-    // ÇÃ·¹ÀÌ¾î
+    // í”Œë ˆì´ì–´
     playerBmp[0] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOAL));
     playerBmp[1] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALLEFT));
     playerBmp[2] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALRIGHT));
     playerBmp[3] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_GOALUP));
-    // ÃÑ
+    // ì´
     bulletBmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_BULLET));
-    // ¸ó½ºÅÍ
+    // ëª¬ìŠ¤í„°
     monsterBmp[0] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER1));
     monsterBmp[1] = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_CHARACTER2));
-    // Á×À½
+    // ì£½ìŒ
     deadBmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_DEAD));
 }
 
@@ -80,7 +80,7 @@ void Game::renderPlay()
 
         if (!waiting)
         {
-            // ÇÃ·¹ÀÌ¾î
+            // í”Œë ˆì´ì–´
             if (pHoriz)
             {
                 HBITMAP pSprite = pFilp ? playerBmp[1] : playerBmp[2];
@@ -93,7 +93,7 @@ void Game::renderPlay()
             }
             BitBlt(back, playerPos.x * cell, playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
-            // ¸ó½ºÅÍ
+            // ëª¬ìŠ¤í„°
             HBITMAP mSprite = mFilp ? monsterBmp[0] : monsterBmp[1];
             mFilp = !mFilp;
             SelectObject(scr, mSprite);
@@ -104,7 +104,7 @@ void Game::renderPlay()
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
-            // ÃÑ¾Ë
+            // ì´ì•Œ
             SelectObject(scr, bulletBmp);
             using It = list<pair<int, POINT>>::iterator;
             for (It it = gun.begin(); it != gun.end();)
@@ -116,11 +116,11 @@ void Game::renderPlay()
         }
         else
         {
-            // ÇÃ·¹ÀÌ¾î Á×À½
+            // í”Œë ˆì´ì–´ ì£½ìŒ
             SelectObject(scr, deadBmp);
             BitBlt(back, playerPos.x * cell, playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
-            // ¸ó½ºÅÍ Á×À½
+            // ëª¬ìŠ¤í„° ì£½ìŒ
             SelectObject(scr, deadBmp);
             for (const pair<int, POINT>& it : monsterPos)
             {
@@ -128,7 +128,7 @@ void Game::renderPlay()
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
-            // ÃÑ¾Ë Áö¿ì±â
+            // ì´ì•Œ ì§€ìš°ê¸°
             SelectObject(scr, groundBmp[0]);
             using It = list<pair<int, POINT>>::iterator;
             for (It it = gun.begin(); it != gun.end();)
@@ -163,10 +163,10 @@ void Game::renderPlay()
 
 void Game::renderEnd()
 {
-    // ¸Ş¸ğ¸® ´©¼ö ¹æÁö
+    // ë©”ëª¨ë¦¬ ëˆ„ìˆ˜ ë°©ì§€
     SelectObject(back, originalBmp);
-    // ¸Ş¸ğ¸® ÇØÁ¦
-    // ¶¥
+    // ë©”ëª¨ë¦¬ í•´ì œ
+    // ë•…
     DeleteObject(groundBmp[0]);
     DeleteObject(groundBmp[1]);
     // 
