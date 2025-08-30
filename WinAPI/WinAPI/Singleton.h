@@ -1,27 +1,30 @@
-#pragma once
+ï»¿#pragma once
 
-// Âü°íÀÚ·á
+// ì°¸ê³ ìë£Œ
 // https://computing-jhson.tistory.com/135
 
 template<typename T>
 class Singleton
 {
-private:
+protected:
 	Singleton() = default;
+	~Singleton() = default;
 
-public:
-	static T Get() 
+protected:
+	static T& Get() 
 	{
-		static Singleton instance;
+		static T instance;
 		return instance;
 	}
 
-private:
-	// ¹æÁö
-	// º¹»ç¡¤ÀÌµ¿ »ı¼ºÀÚ
-	T(const T& t) = delete;
-	T(T&& t) = delete;
-	// º¹»ç¡¤ÀÌµ¿ ´ëÀÔ
-	T& operator=(const T& t) = delete;
-	T& operator=(T&& t) = delete;
+protected:
+	// ë°©ì§€
+	// Singletonë§Œ ë´‰ì‡„í•˜ê³ , ë‹¤ë¥¸ íƒ€ì…(T)ì€ ììœ ë¡­ê²Œ ìƒì„± ë° ëŒ€ì…
+	// 
+	// ë³µì‚¬Â·ì´ë™ ìƒì„±ì
+	Singleton(const Singleton& t) = delete;
+	Singleton(Singleton&& t) = delete;
+	// ë³µì‚¬Â·ì´ë™ ëŒ€ì…
+	Singleton& operator=(const Singleton& t) = delete;
+	Singleton& operator=(Singleton&& t) = delete;
 };
