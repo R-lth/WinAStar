@@ -12,6 +12,7 @@
 #include "Types.h"
 #include "Gun.h"
 #include "Collision.h"
+#include "GameState.h"
 
 using namespace std;
 
@@ -23,18 +24,24 @@ public:
 	
 public:
     void setPos(POINT pos);
+    POINT getPos();
+    bool getVertical();
+    bool getHorizontal();
+    bool getFilp();
 
     // TODO. grid하고 monsterPos는 전역으로 처리하는 게 나은지
     // 아니면 Game에서 책임지는 게 나은지
-	void movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monsterPos);
-    void shoot(const vector<vector<int>> grid, map<int, POINT>& monsterPos);
+	POINT movePlayer(HWND hWnd);
+    void shoot();
 
 private:
 	POINT pos;
-    bool pHoriz = false;
+    bool pVertical = false;  // 수직(상하)
+    bool pHorizontal = false;     // 수평(좌우)
     bool pFilp = false;
-    bool pUp = false;
+    
     Collision collision;
     Gun gun;
+    GameState gameState;
 };
 

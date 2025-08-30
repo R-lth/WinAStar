@@ -22,12 +22,18 @@ void Game::init(HWND hWnd)
 
 void Game::update(HWND hWnd, WPARAM wParam)
 {
-    // TODO. 타이머 및 입풋 처리
     switch (wParam)
     {
     case 1:
     {
-        monster.moveMonster();
+#pragma region 입력 관련
+        // TODO. 플레이어 이동 
+        POINT pos = player.movePlayer(hWnd);
+        // TODO. 플레이어 사격
+        //
+#pragma endregion
+        // 몬스터 위치 갱신
+        monster.moveMonster(pos);
     }
     break;
     case 2:
@@ -37,7 +43,6 @@ void Game::update(HWND hWnd, WPARAM wParam)
     break;
     case 3:
     {
-        player.movePlayer();
         player.shoot();
     }
     break;
@@ -109,39 +114,39 @@ void Game::renderBegin(HDC hdc, HINSTANCE hInst)
 
 void Game::renderPlay()
 {
-    if (!gameOver) 
+    if (!gameState.gameOver) 
     {
-        for (int y = 0; y < n; ++y)
+        for (int y = 0; y < gameState.n; ++y)
         {
-            for (int x = 0; x < n; ++x)
+            for (int x = 0; x < gameState.n; ++x)
             {
-                HBITMAP tile = grid[y][x] ? groundBmp[1] : groundBmp[0];
+                HBITMAP tile = gameState.grid[y][x] ? groundBmp[1] : groundBmp[0];
                 SelectObject(scr, tile);
                 BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
         }
 
-        if (!waiting)
+        if (!gameState.waiting)
         {
             // 플레이어
-            if (pHoriz)
+            if (player.getHorizontal())
             {
-                HBITMAP pSprite = pFilp ? playerBmp[1] : playerBmp[2];
+                HBITMAP pSprite = player.getFilp() ? playerBmp[1] : playerBmp[2];
                 SelectObject(scr, pSprite);
             }
             else
             {
-                HBITMAP pSprite = pUp ? playerBmp[3] : playerBmp[0];
+                HBITMAP pSprite = player.getVertical() ? playerBmp[3] : playerBmp[0];
                 SelectObject(scr, pSprite);
             }
-            BitBlt(back, playerPos.x * cell, playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            BitBlt(back, player.getPos().x * cell, player.getPos().y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터
             HBITMAP mSprite = mFilp ? monsterBmp[0] : monsterBmp[1];
             mFilp = !mFilp;
             SelectObject(scr, mSprite);
 
-            for (const pair<int, POINT>& it : monsterPos)
+            for (const pair<int, POINT>& it : gameState.monsterPos)
             {
                 POINT pos = it.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -161,11 +166,11 @@ void Game::renderPlay()
         {
             // 플레이어 죽음
             SelectObject(scr, deadBmp);
-            BitBlt(back, playerPos.x * cell, playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            BitBlt(back, player.getPos().x * cell, player.getPos().y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터 죽음
             SelectObject(scr, deadBmp);
-            for (const pair<int, POINT>& it : monsterPos)
+            for (const pair<int, POINT>& it : gameState.monsterPos)
             {
                 POINT pos = it.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -184,9 +189,9 @@ void Game::renderPlay()
     }
     else 
     {
-        for (int y = 0; y < n; ++y)
+        for (int y = 0; y < gameState.n; ++y)
         {
-            for (int x = 0; x < n; ++x)
+            for (int x = 0; x < gameState.n; ++x)
             {
                 SelectObject(scr, blackBmp);
                 BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -208,6 +213,7 @@ void Game::renderEnd()
 {
     // 메모리 누수 방지
     SelectObject(back, originalBmp);
+    
     // 메모리 해제
     // 땅
     DeleteObject(groundBmp[0]);

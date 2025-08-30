@@ -1,6 +1,6 @@
 ﻿#include "Gun.h"
 
-void Gun::spawnBullet(pair<ShootDir, POINT> p)
+void Gun::loadingBullets(pair<ShootDir, POINT> p)
 {
     if (collision.okToGo(p.second))
     {
@@ -8,7 +8,7 @@ void Gun::spawnBullet(pair<ShootDir, POINT> p)
     }
 }
 
-void Gun::shootBullet()
+void Gun::shootBullets()
 {
     using It = list<pair<ShootDir, POINT>>::iterator;
     for (It it = gun.begin(); it != gun.end();)

@@ -13,8 +13,8 @@ public:
 	~Gun() = default;
 
 public:
-	void spawnBullet(pair<ShootDir, POINT> p);
-	void shootBullet();
+	void loadingBullets(pair<ShootDir, POINT> p);
+	void shootBullets();
 
 private:
 	list<pair<ShootDir, POINT>> gun;

@@ -12,10 +12,10 @@
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
 HWND hWnd;                                      // 창 핸들 전역으로 초기화.
+HDC hdc;
 
 // 게임
 Game game;
-HDC hdc;
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -145,9 +145,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         case WM_TIMER:
         {
+            // TODO. waiting 시 input 불가
             game.update(hWnd, wParam);
         }
-        break;
         break;
         case WM_PAINT:
         {
@@ -167,6 +167,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
-        return 0;
+    
+    return 0;
 }
 

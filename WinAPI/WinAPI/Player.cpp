@@ -7,57 +7,77 @@ void Player::setPos(POINT pos)
     this->pos = pos;
 }
 
-void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monsterPos)
+POINT Player::getPos()
+{
+    return pos;
+}
+
+bool Player::getVertical()
+{
+    return pVertical;
+}
+
+bool Player::getHorizontal()
+{
+    return pHorizontal;
+}
+
+bool Player::getFilp()
+{
+    return pFilp;
+}
+
+POINT Player::movePlayer(HWND hWnd)
 {
     MoveDir dir = Input::Get().getMoveDir();
 
     POINT next = pos;
-    pHoriz = false;
+    pHorizontal = false;
 
     if (dir == MoveDir::WA)
     {
         next.x -= 1;
         next.y -= 1;
-        pUp = true;
+        pVertical = true;
     }
     else if (dir == MoveDir::WD)
     {
         next.x += 1;
         next.y -= 1;
-        pUp = true;
+        pVertical = true;
     }
     else if (dir == MoveDir::SA)
     {
         next.x -= 1;
         next.y += 1;
-        pUp = false;
+        pVertical = false;
     }
     else if (dir == MoveDir::SD)
     {
         next.x += 1;
         next.y += 1;
-        pUp = false;
+        pVertical = false;
     }
     else if (dir == MoveDir::W)
     {
         next.y -= 1;
-        pUp = true;
+        pVertical = true;
     }
     else if (dir == MoveDir::A)
     {
         next.x -= 1;
-        pHoriz = true;
+        pHorizontal = true;
         pFilp = !pFilp;
     }
     else if (dir == MoveDir::S)
     {
         next.y += 1;
-        pUp = false;
+        pVertical = false;
     }
     else if (dir == MoveDir::D)
     {
         next.x += 1;
-        pHoriz = true;
+        pHorizontal = true;
         pFilp = !pFilp;
     }
 
@@ -77,15 +97,15 @@ void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monste
 
         // TODO. 플레이어 이동에 따른 몬스터 경로 갱신
         // 이건 게임 객체의 역할이 아닐까
-        for (int id = 0; id < monsterPos.size(); ++id)
+        for (int id = 0; id < gameState.monsterPos.size(); ++id)
         {
-            pathInfo[id] = aStar.findPath(monsterPos[id], pos, grid);
+            gameState.pathInfo[id] = aStar.findPath(gameState.monsterPos[id], pos, gameState.grid);
         }
     }
     // 게임 종료
     else 
     {
-        isWaiting = true;
+        gameState.waiting = true;
         KillTimer(hWnd, 1);
         KillTimer(hWnd, 2);
         KillTimer(hWnd, 3);
@@ -93,9 +113,11 @@ void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monste
         // 2초 후 
         SetTimer(hWnd, 4, 2000, NULL);
     }
+
+    return pos;
 }
 
-void Player::shoot(const vector<vector<int>> grid, map<int, POINT>& monsterPos)
+void Player::shoot()
 {
     ShootDir dir = Input::Get().getShootDir();
     POINT bullet = pos;
@@ -137,6 +159,6 @@ void Player::shoot(const vector<vector<int>> grid, map<int, POINT>& monsterPos)
         bullet.x += 1;
     }
     
-    gun.spawnBullet({dir, pos});
-    gun.shootBullet();
+    gun.loadingBullets({dir, pos});
+    gun.shootBullets();
 }
