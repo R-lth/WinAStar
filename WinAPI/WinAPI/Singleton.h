@@ -10,7 +10,7 @@ protected:
 	Singleton() = default;
 	~Singleton() = default;
 
-protected:
+public:
 	static T& Get() 
 	{
 		static T instance;
