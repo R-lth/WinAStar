@@ -3,7 +3,6 @@
 // TODO. 근데 프레임으로 제어할 건데 winproc 함수 기준으로
 // 생각하는 거 아님??????????????????????
 
-#include "windef.h"
 #include <vector>
 #include <map>
 #include <deque>
@@ -13,6 +12,7 @@
 #include "Gun.h"
 #include "Collision.h"
 #include "GameState.h"
+#include "AStar.h"
 
 using namespace std;
 
@@ -23,19 +23,19 @@ public:
 	~Player() = default;
 	
 public:
-    void setPos(POINT pos);
-    POINT getPos();
+    void setPos(Position pos);
+    Position getPos();
     bool getVertical();
     bool getHorizontal();
     bool getFilp();
 
     // TODO. grid하고 monsterPos는 전역으로 처리하는 게 나은지
     // 아니면 Game에서 책임지는 게 나은지
-	POINT movePlayer(HWND hWnd);
+	Position movePlayer(HWND hWnd);
     void shoot();
 
 private:
-	POINT pos;
+	Position pos;
     bool pVertical = false;  // 수직(상하)
     bool pHorizontal = false;     // 수평(좌우)
     bool pFilp = false;
@@ -43,5 +43,6 @@ private:
     Collision collision;
     Gun gun;
     GameState gameState;
+    AStar aStar;
 };
 

@@ -38,17 +38,10 @@ public:
 private:
     void setPlayGround();
 
-    // TODO. 접근 지정자 수정
-public:
-    const vector<pair<POINT, float>> direction =
-    {
-        { {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
-        { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
-    };
-
 private:
     GameState gameState;
     Player player;
+    Gun gun;
     Monster monster;
 
 private:
@@ -65,7 +58,7 @@ private:
     HBITMAP monsterBmp[2]; // Character1, Character2
     HBITMAP deadBmp;
     //
-    const vector<POINT> uiSpawn
+    const vector<Position> uiSpawn
     {
         // index로 char 판단
         // 대초원의

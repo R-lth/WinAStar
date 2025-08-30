@@ -1,9 +1,10 @@
 ﻿#pragma once
 
-#include "windef.h"
 #include <vector>
 #include <deque>
+#include "GameState.h"
 #include "Collision.h"
+#include "AStar.h"
 
 using namespace std;
 
@@ -14,11 +15,13 @@ public:
 	~Monster() = default;
 
 public:
-	void spawnMonster();
-	void moveMonster(POINT player);
+    void setMFilp();
+    bool getMFlip();
+	void spawnMonster(Position player);
+	void moveMonster(Position player);
 
 private:
-    const vector<POINT> spawnPos =
+    const vector<Position> spawnPos =
     {
         {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
         {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
@@ -26,9 +29,9 @@ private:
         {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
     };
 
-    POINT pos;
-    Collision collision;
-    
-    // TODO. 몬스터 좌우반전
+    Position pos;
     bool mFilp = false;
+    GameState gameState;
+    Collision collision;
+    AStar aStar;
 };

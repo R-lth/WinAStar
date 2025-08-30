@@ -1,6 +1,6 @@
 ﻿#include "AStar.h"
 
-deque<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>> grid)
+deque<POINT> AStar::findPath(POINT start, POINT goal)
 {
 	priority_queue<Node, vector<Node>, Compare> pq;
 	map<POINT, POINT> visited;
@@ -45,15 +45,14 @@ deque<POINT> AStar::findPath(POINT start, POINT goal, const vector<vector<int>> 
 			int nextX = node.current.x + dir.first.x;
 			POINT next = { nextX, nextY };
 			
-			int row = static_cast<int>(grid.size());
-			int col = static_cast<int>(grid[0].size());
+			int n = gameState.n;
 			
-			if (nextX < 0 || nextX >= col || nextY < 0 || nextY >= row) 
+			if (nextX < 0 || nextX >= n || nextY < 0 || nextY >= n) 
 			{
 				continue;
 			}
 
-			if (grid[nextY][nextX]) 
+			if (gameState.grid[nextY][nextX]) 
 			{
 				continue;
 			}

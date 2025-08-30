@@ -5,6 +5,7 @@
 #include <queue>
 #include <map>
 #include <deque>
+#include "GameState.h"
 
 using namespace std;
 
@@ -32,7 +33,7 @@ struct Compare
 class AStar
 {
 public:
-	deque<POINT> findPath(POINT start, POINT goal, const vector<vector<int>> grid);
+	deque<POINT> findPath(POINT start, POINT goal);
 
 private:
 	deque<POINT> getPath(POINT character, map<POINT, POINT> visited);
@@ -44,4 +45,6 @@ private:
 		{ {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
 		{ {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
 	};
+
+	GameState gameState;
 };

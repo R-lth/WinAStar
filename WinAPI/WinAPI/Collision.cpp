@@ -20,7 +20,7 @@ bool Collision::checkPlayerMonsterCollision(const POINT pos)
     for (const pair<int, POINT>& it : gameState.monsterPos)
     {
         POINT monster = it.second;
-        if (pos.x == monster.x && pos.y && monster.y)
+        if (pos.x == monster.x && pos.y == monster.y)
         {
             gameState.monsterPos.erase(it.first);
             return true;
@@ -44,7 +44,7 @@ bool Collision::checkMonsterCollision(const POINT pos)
     return false;
 }
 
-bool Collision::checkMonsterCollision(int id, const POINT pos)
+bool Collision::checkMonsterCollision(const POINT pos, int id)
 {
     for (int i = 0; i < gameState.monsterPos.size(); ++i)
     {
@@ -62,7 +62,19 @@ bool Collision::checkMonsterCollision(int id, const POINT pos)
     return false;
 }
 
-map<int, POINT>& Collision::getMonsterPos()
+bool Collision::shot(const POINT pos, list<pair<ShootDir, POINT>>::iterator& it)
 {
-    return gameState.monsterPos;
+    for (int id = 0; id < gameState.monsterPos.size(); ++id)
+    {
+        if (pos.x == gameState.monsterPos[id].x && pos.y == gameState.monsterPos[id].y)
+        {
+            //
+            it = gun.getGun().erase(it);
+            //
+            gameState.monsterPos.erase(id);
+            return true;
+        }
+    }
+
+    return false;
 }

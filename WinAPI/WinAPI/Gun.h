@@ -13,11 +13,12 @@ public:
 	~Gun() = default;
 
 public:
-	void loadingBullets(pair<ShootDir, POINT> p);
+	list<pair<ShootDir, Position>>& getGun();
+	void loadingBullets(pair<ShootDir, Position> p);
 	void shootBullets();
 
 private:
-	list<pair<ShootDir, POINT>> gun;
+	list<pair<ShootDir, Position>> gun;
 	Collision collision;
 };
 

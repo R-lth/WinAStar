@@ -34,61 +34,58 @@ POINT Player::movePlayer(HWND hWnd)
     POINT next = pos;
     pHorizontal = false;
 
-    if (dir == MoveDir::WA)
+    switch (dir)
     {
+    case MoveDir::WA:
         next.x -= 1;
         next.y -= 1;
         pVertical = true;
-    }
-    else if (dir == MoveDir::WD)
-    {
+        break;
+    case MoveDir::WD:
         next.x += 1;
         next.y -= 1;
         pVertical = true;
-    }
-    else if (dir == MoveDir::SA)
-    {
+        break;
+    case MoveDir::SA:
         next.x -= 1;
         next.y += 1;
         pVertical = false;
-    }
-    else if (dir == MoveDir::SD)
-    {
+        break;
+    case MoveDir::SD:
         next.x += 1;
         next.y += 1;
         pVertical = false;
-    }
-    else if (dir == MoveDir::W)
-    {
+        break;
+    case MoveDir::W:
         next.y -= 1;
         pVertical = true;
-    }
-    else if (dir == MoveDir::A)
-    {
+        break;
+    case MoveDir::A:
         next.x -= 1;
         pHorizontal = true;
         pFilp = !pFilp;
-    }
-    else if (dir == MoveDir::S)
-    {
+        break;
+    case MoveDir::S:
         next.y += 1;
         pVertical = false;
-    }
-    else if (dir == MoveDir::D)
-    {
+        break;
+    case MoveDir::D:
         next.x += 1;
         pHorizontal = true;
         pFilp = !pFilp;
+        break;
+    default:
+        break;
     }
 
     // 경계 및 장애물 검사
-    if (!collision.okToGo(pos))
+    if (!collision.okToGo(next))
     {
-        return;
+        return pos;
     }
 
     // 충돌 처리
-    bool hit = collision.checkPlayerMonsterCollision(pos);
+    bool hit = collision.checkPlayerMonsterCollision(next);
 
     // 이동
     if (!hit) 
@@ -96,10 +93,9 @@ POINT Player::movePlayer(HWND hWnd)
         pos = next;
 
         // TODO. 플레이어 이동에 따른 몬스터 경로 갱신
-        // 이건 게임 객체의 역할이 아닐까
         for (int id = 0; id < gameState.monsterPos.size(); ++id)
         {
-            gameState.pathInfo[id] = aStar.findPath(gameState.monsterPos[id], pos, gameState.grid);
+            gameState.pathInfo[id] = aStar.findPath(gameState.monsterPos[id], pos);
         }
     }
     // 게임 종료
@@ -122,43 +118,39 @@ void Player::shoot()
     ShootDir dir = Input::Get().getShootDir();
     POINT bullet = pos;
 
-    if (dir == ShootDir::UpLeft)
+    switch (dir)
     {
+    case ShootDir::UpLeft:
         bullet.x -= 1;
         bullet.y -= 1;
-    }
-    else if (dir == ShootDir::UpRight)
-    {
+        break;
+    case ShootDir::UpRight:
         bullet.x += 1;
         bullet.y -= 1;
-    }
-    else if (dir == ShootDir::DownLeft)
-    {
+        break;
+    case ShootDir::DownLeft:
         bullet.x -= 1;
         bullet.y += 1;
-    }
-    else if (dir == ShootDir::DownRight)
-    {
+        break;
+    case ShootDir::DownRight:
         bullet.x += 1;
         bullet.y += 1;
-    }
-    else if (dir == ShootDir::Up)
-    {
+        break;
+    case ShootDir::Up:
         bullet.y -= 1;
-    }
-    else if (dir == ShootDir::Left)
-    {
+        break;
+    case ShootDir::Left:
         bullet.x -= 1;
-    }
-    else if (dir == ShootDir::Down)
-    {
+        break;
+    case ShootDir::Down:
         bullet.y += 1;
-    }
-    else if (dir == ShootDir::Right)
-    {
+        break;
+    case ShootDir::Right:
         bullet.x += 1;
+        break;
+    default:
+        break;
     }
-    
-    gun.loadingBullets({dir, pos});
-    gun.shootBullets();
+
+    gun.loadingBullets({dir, bullet});
 }

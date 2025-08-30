@@ -10,6 +10,12 @@ using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
 
+struct Position
+{
+    LONG  x;
+    LONG  y;
+};
+
 enum class MoveDir
 {
     WA,
@@ -19,7 +25,8 @@ enum class MoveDir
     W,
     A,
     S,
-    D
+    D,
+    None
 };
 
 enum class ShootDir
@@ -31,5 +38,6 @@ enum class ShootDir
     Up,
     Left,
     Down,
-    Right
+    Right,
+    None
 };

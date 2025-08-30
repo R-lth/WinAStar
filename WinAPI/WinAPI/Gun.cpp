@@ -1,5 +1,10 @@
 ﻿#include "Gun.h"
 
+list<pair<ShootDir, POINT>>& Gun::getGun()
+{
+    return gun;
+}
+
 void Gun::loadingBullets(pair<ShootDir, POINT> p)
 {
     if (collision.okToGo(p.second))
@@ -54,21 +59,7 @@ void Gun::shootBullets()
             continue;
         }
 
-        bool hit = false;
-
-        // TODO. collision 컴포넌트의 함수로 만들어야 하는가
-        for (int id = 0; id < collision.getMonsterPos().size(); ++id)
-        {
-            if (next.x == collision.getMonsterPos()[id].x && next.y == collision.getMonsterPos()[id].y)
-            {
-                //
-                it = gun.erase(it);
-                //
-                collision.getMonsterPos().erase(id);
-                hit = true;
-                break;
-            }
-        }
+        bool hit = collision.shot(next, it);
 
         if (!hit)
         {

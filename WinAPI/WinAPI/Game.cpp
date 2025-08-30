@@ -26,24 +26,28 @@ void Game::update(HWND hWnd, WPARAM wParam)
     {
     case 1:
     {
-#pragma region 입력 관련
-        // TODO. 플레이어 이동 
-        POINT pos = player.movePlayer(hWnd);
-        // TODO. 플레이어 사격
-        //
-#pragma endregion
-        // 몬스터 위치 갱신
+        Position pos;
+
+        if (!gameState.gameOver && !gameState.waiting) 
+        {
+            pos = player.movePlayer(hWnd);
+        }
+
         monster.moveMonster(pos);
+        gun.shootBullets();
     }
     break;
     case 2:
     {
-        monster.spawnMonster();
+        monster.spawnMonster(player.getPos());
     }
     break;
     case 3:
     {
-        player.shoot();
+        if (!gameState.gameOver && !gameState.waiting)
+        {
+            player.shoot();
+        }
     }
     break;
     case 4:
@@ -142,22 +146,22 @@ void Game::renderPlay()
             BitBlt(back, player.getPos().x * cell, player.getPos().y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터
-            HBITMAP mSprite = mFilp ? monsterBmp[0] : monsterBmp[1];
-            mFilp = !mFilp;
+            HBITMAP mSprite = monster.getMFlip() ? monsterBmp[0] : monsterBmp[1];
+            monster.setMFilp();
             SelectObject(scr, mSprite);
 
-            for (const pair<int, POINT>& it : gameState.monsterPos)
+            for (const pair<int, Position>& it : gameState.monsterPos)
             {
-                POINT pos = it.second;
+                Position pos = it.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
             // 총알
             SelectObject(scr, bulletBmp);
-            using It = list<pair<int, POINT>>::iterator;
-            for (It it = gun.begin(); it != gun.end();)
+            using It = list<pair<ShootDir, Position>>::iterator;
+            for (It it = gun.getGun().begin(); it != gun.getGun().end();)
             {
-                POINT bullet = it->second;
+                Position bullet = it->second;
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 it = next(it);
             }
@@ -170,18 +174,18 @@ void Game::renderPlay()
 
             // 몬스터 죽음
             SelectObject(scr, deadBmp);
-            for (const pair<int, POINT>& it : gameState.monsterPos)
+            for (const pair<int, Position>& it : gameState.monsterPos)
             {
-                POINT pos = it.second;
+                Position pos = it.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
             // 총알 지우기
             SelectObject(scr, groundBmp[0]);
-            using It = list<pair<int, POINT>>::iterator;
-            for (It it = gun.begin(); it != gun.end();)
+            using It = list<pair<ShootDir, Position>>::iterator;
+            for (It it = gun.getGun().begin(); it != gun.getGun().end();)
             {
-                POINT bullet = it->second;
+                Position bullet = it->second;
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 it = next(it);
             }
