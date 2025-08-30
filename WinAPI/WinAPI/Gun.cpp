@@ -1,14 +1,14 @@
 ﻿#include "Gun.h"
 
-void Gun::spawnBullet(pair<ShootDir, POINT> p, const vector<vector<int>> grid)
+void Gun::spawnBullet(pair<ShootDir, POINT> p)
 {
-    if (collision.okToGo(p.second, grid))
+    if (collision.okToGo(p.second))
     {
         gun.push_back({p.first, p.second });
     }
 }
 
-void Gun::shootBullet(const vector<vector<int>> grid, map<int, POINT>& monsterPos)
+void Gun::shootBullet()
 {
     using It = list<pair<ShootDir, POINT>>::iterator;
     for (It it = gun.begin(); it != gun.end();)
@@ -48,7 +48,7 @@ void Gun::shootBullet(const vector<vector<int>> grid, map<int, POINT>& monsterPo
             break;
         }
 
-        if (!collision.okToGo(next, grid))
+        if (!collision.okToGo(next))
         {
             it = gun.erase(it);
             continue;
@@ -56,15 +56,15 @@ void Gun::shootBullet(const vector<vector<int>> grid, map<int, POINT>& monsterPo
 
         bool hit = false;
 
-        // TODO. collision 컴포넌트가 피격 판정까지 관리해야 하는가.
-        for (int id = 0; id < monsterPos.size(); ++id)
+        // TODO. collision 컴포넌트의 함수로 만들어야 하는가
+        for (int id = 0; id < collision.getMonsterPos().size(); ++id)
         {
-            if (next.x == monsterPos[id].x && next.y == monsterPos[id].y)
+            if (next.x == collision.getMonsterPos()[id].x && next.y == collision.getMonsterPos()[id].y)
             {
                 //
                 it = gun.erase(it);
                 //
-                monsterPos.erase(id);
+                collision.getMonsterPos().erase(id);
                 hit = true;
                 break;
             }

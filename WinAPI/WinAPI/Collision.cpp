@@ -1,29 +1,29 @@
 ﻿#include "Collision.h"
 
-bool Collision::isInRange(const POINT pos, const int n)
+bool Collision::isInRange(const POINT pos)
 {
+    const int n = gameState.grid.size();
     return (pos.x >= 0 && pos.x < n && pos.y >= 0 && pos.y < n);
 }
 
-bool Collision::isObstacle(const POINT pos, const vector<vector<int>>& grid)
+bool Collision::isObstacle(const POINT pos)
 {
-    return (grid[pos.y][pos.x]);
+    return (gameState.grid[pos.y][pos.x]);
 }
 
-bool Collision::okToGo(const POINT pos, const vector<vector<int>>& grid)
+bool Collision::okToGo(const POINT pos)
 {
-    const int n = grid.size();
-    return (isInRange(pos, n) && !isObstacle(pos, grid));
+    return (isInRange(pos) && !isObstacle(pos));
 }
 
-bool Collision::checkPlayerMonsterCollision(const POINT pos, map<int, POINT>& monsterPos)
+bool Collision::checkPlayerMonsterCollision(const POINT pos)
 {
-    for (const pair<int, POINT>& it : monsterPos)
+    for (const pair<int, POINT>& it : gameState.monsterPos)
     {
         POINT monster = it.second;
         if (pos.x == monster.x && pos.y && monster.y)
         {
-            monsterPos.erase(it.first);
+            gameState.monsterPos.erase(it.first);
             return true;
         }
     }
@@ -31,12 +31,12 @@ bool Collision::checkPlayerMonsterCollision(const POINT pos, map<int, POINT>& mo
     return false;
 }
 
-bool Collision::checkMonsterCollision(const POINT pos, const map<int, POINT>& monsterPos)
+bool Collision::checkMonsterCollision(const POINT pos)
 {
-    for (int i = 0; i < monsterPos.size(); ++i)
+    for (int i = 0; i < gameState.monsterPos.size(); ++i)
     {
 
-        if (pos.x == monsterPos[i].x && pos.y == monsterPos[i].y)
+        if (pos.x == gameState.monsterPos[i].x && pos.y == gameState.monsterPos[i].y)
         {
             return true;
         }
@@ -45,21 +45,25 @@ bool Collision::checkMonsterCollision(const POINT pos, const map<int, POINT>& mo
     return false;
 }
 
-
-bool Collision::checkMonsterCollision(int id, const POINT pos, const map<int, POINT>& monsterPos)
+bool Collision::checkMonsterCollision(int id, const POINT pos)
 {
-    for (int i = 0; i < monsterPos.size(); ++i) 
+    for (int i = 0; i < gameState.monsterPos.size(); ++i)
     {
         if (id == i) 
         {
             continue;
         }
 
-        if (pos.x == monsterPos[i].x && pos.y == monsterPos[i].y) 
+        if (pos.x == gameState.monsterPos[i].x && pos.y == gameState.monsterPos[i].y)
         {
             return true;
         }
     }
 
     return false;
+}
+
+map<int, POINT>& Collision::getMonsterPos()
+{
+    return gameState.monsterPos;
 }

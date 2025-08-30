@@ -2,13 +2,13 @@
 #include "Monster.h"
 
 
-void Monster::spawnMonster(const vector<vector<int>>& grid)
+void Monster::spawnMonster()
 {
     int i = rand() % spawnPos.size();
 
     pos = spawnPos[i];
 
-    if (collistion.okToGo(pos, grid) && !collistion.checkMonsterCollision(pos, monsterPos))
+    if (collision.okToGo(pos) && !collision.checkMonsterCollision(pos))
     {
         // TODO. game 객체의 역할 
         //////////////////////////////////////////////
@@ -16,24 +16,24 @@ void Monster::spawnMonster(const vector<vector<int>>& grid)
         pathInfo.emplace_back(path);
         int id = pathInfo.size() - 1;
         //////////////////////////////////////////////
-        monsterPos.insert({ id, monster });
+        collision.getMonsterPos().insert({id, monster});
     }
 }
 
-void Monster::moveMonster(POINT player, const vector<vector<int>>& grid)
+void Monster::moveMonster(POINT player)
 {
-    for (int id = 0; id < monsterPos.size(); ++id)
+    for (int id = 0; id < collision.getMonsterPos().size(); ++id)
     {
-        POINT next = monsterPos[id];
+        POINT next = collision.getMonsterPos()[id];
 
         // TODO. game 객체의 역할?
-        while (!pathInfo[id].empty() && monsterPos[id].x == next.x && monsterPos[id].y == next.y)
+        while (!pathInfo[id].empty() && collision.getMonsterPos()[id].x == next.x && collision.getMonsterPos()[id].y == next.y)
         {
             next = pathInfo[id].front();
             pathInfo[id].pop_front();
         }
 
-        if (!collistion.okToGo(next, grid) || collistion.checkMonsterCollision(id, next, monsterPos))
+        if (!collision.okToGo(next) || collision.checkMonsterCollision(id, next))
         {
             continue;
         }

@@ -56,13 +56,13 @@ void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monste
     }
 
     // 경계 및 장애물 검사
-    if (!collision.okToGo(pos, grid))
+    if (!collision.okToGo(pos))
     {
         return;
     }
 
     // 충돌 처리
-    bool hit = collision.checkPlayerMonsterCollision(pos, monsterPos);
+    bool hit = collision.checkPlayerMonsterCollision(pos);
 
     // 이동
     if (!hit) 
@@ -131,6 +131,6 @@ void Player::shoot(const vector<vector<int>> grid, map<int, POINT>& monsterPos)
         bullet.x += 1;
     }
     
-    gun.spawnBullet({dir, pos}, grid);
-    gun.shootBullet(grid, monsterPos);
+    gun.spawnBullet({dir, pos});
+    gun.shootBullet();
 }

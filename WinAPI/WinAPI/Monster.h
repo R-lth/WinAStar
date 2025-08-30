@@ -14,8 +14,8 @@ public:
 	~Monster() = default;
 
 public:
-	void spawnMonster(const vector<vector<int>>& grid);
-	void moveMonster(POINT player, const vector<vector<int>>& grid);
+	void spawnMonster();
+	void moveMonster(POINT player);
 
 private:
     const vector<POINT> spawnPos =
@@ -27,7 +27,7 @@ private:
     };
 
     POINT pos;
-    Collision collistion;
+    Collision collision;
     
     // TODO. 몬스터 좌우반전
     bool mFilp = false;

@@ -1,10 +1,8 @@
 ﻿#pragma once
 
-#include "windef.h"
-#include <vector>
 #include <list>
-#include "Collision.h"
 #include "Types.h"
+#include "Collision.h"
 
 using namespace std;
 
@@ -15,8 +13,8 @@ public:
 	~Gun() = default;
 
 public:
-	void spawnBullet(pair<ShootDir, POINT> p, const vector<vector<int>> grid);
-	void shootBullet(const vector<vector<int>> grid, map<int, POINT>& monsterPos);
+	void spawnBullet(pair<ShootDir, POINT> p);
+	void shootBullet();
 
 private:
 	list<pair<ShootDir, POINT>> gun;
