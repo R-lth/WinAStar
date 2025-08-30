@@ -38,9 +38,6 @@ public:
 
 // TODO. 접근 지정자 수정
 public:
-    const int n = 20;
-    vector<vector<int>> grid;
-
     const vector<pair<POINT, float>> direction =
     {
         { {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},

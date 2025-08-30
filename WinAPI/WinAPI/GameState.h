@@ -9,6 +9,7 @@ struct GameState
 	bool waiting = false;
 
 	// 2D 타일맵
+	const int n = 20;
 	vector<vector<int>>& grid;
 
 	// 몬스터 정보

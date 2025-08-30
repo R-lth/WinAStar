@@ -16,6 +16,7 @@ void Monster::spawnMonster()
         pathInfo.emplace_back(path);
         int id = pathInfo.size() - 1;
         //////////////////////////////////////////////
+        // TODO. 충돌 자체에서 monsterPos는 함수로 접근하는 게 맞을까
         collision.getMonsterPos().insert({id, monster});
     }
 }

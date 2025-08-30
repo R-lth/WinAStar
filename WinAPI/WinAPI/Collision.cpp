@@ -2,8 +2,7 @@
 
 bool Collision::isInRange(const POINT pos)
 {
-    const int n = gameState.grid.size();
-    return (pos.x >= 0 && pos.x < n && pos.y >= 0 && pos.y < n);
+    return (pos.x >= 0 && pos.x < gameState.n && pos.y >= 0 && pos.y < gameState.n);
 }
 
 bool Collision::isObstacle(const POINT pos)
