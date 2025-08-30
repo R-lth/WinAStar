@@ -9,6 +9,7 @@
 #include "Setting.h"
 #include "GameState.h"
 #include "Player.h"
+#include "Monster.h"
 
 // TODO. 헤더 인클루드 정리
 
@@ -48,6 +49,7 @@ public:
 private:
     GameState gameState;
     Player player;
+    Monster monster;
 
 private:
     //

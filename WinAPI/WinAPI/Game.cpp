@@ -11,7 +11,6 @@ void Game::init(HWND hWnd)
 
     // 플레이어 위치 초기화
     player.setPos({ 10,10 });
-
     // 몬스터 위치 초기화 관련
     srand(time(NULL));
 
@@ -28,155 +27,28 @@ void Game::update(HWND hWnd, WPARAM wParam)
     {
     case 1:
     {
-        for (int id = 0; id < monsterPos.size(); ++id)
-        {
-            POINT next = monsterPos[id];
-
-            while (!pathInfo[id].empty() && monsterPos[id].x == next.x && monsterPos[id].y == next.y)
-            {
-                next = pathInfo[id].front();
-                pathInfo[id].pop_front();
-            }
-
-            if (!isInRange(monsterPos[id]) || isObstacle(monsterPos[id]))
-            {
-                continue;
-            }
-
-            if (CollideWithOtherMonsters(id, monsterPos[id]))
-            {
-                continue;
-            }
-
-            // 키가 눌리지 않아도, 플레이어와 몬스터 간의 충돌이 가능하도록
-            if (CollideWithPlayer(monsterPos[id]))
-            {
-                isWaiting = true;
-                KillTimer(hWnd, 1);
-                KillTimer(hWnd, 2);
-                KillTimer(hWnd, 3);
-
-                // 2초 후 
-                SetTimer(hWnd, 4, 2000, NULL);
-                break;
-            }
-            else
-            {
-                // TODO. A*의 대각선 {x, y} 값 고려하기
-                monsterPos[id] = next;
-                deque<POINT> path = aStar.findPath(monsterPos[id], player, playGrid);
-                pathInfo[id] = path;
-            }
-        }
+        monster.moveMonster();
     }
     break;
     case 2:
     {
-        // 몬스터 생성
-        const vector<POINT> center =
-        {
-            {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
-            {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
-            {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
-            {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
-        };
-
-        int i = rand() % center.size();
-
-        POINT monster = center[i];
-
-        if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster))
-        {
-            deque<POINT> path = aStar.findPath(monster, player, playGrid);
-            pathInfo.emplace_back(path);
-            int id = pathInfo.size() - 1;
-            monsterPos.insert({ id, monster });
-        }
+        monster.spawnMonster();
     }
     break;
     case 3:
     {
-        // TODO. 총알 위치 갱신 및 피격 판정
-        using It = list<pair<int, POINT>>::iterator;
-        for (It it = gun.begin(); it != gun.end();)
-        {
-            // 반복자 위치 갱신
-            POINT bullet = it->second;
-
-            switch (it->first)
-            {
-            case 0:
-                bullet.x -= 1;
-                bullet.y -= 1;
-                break;
-            case 1:
-                bullet.x += 1;
-                bullet.y -= 1;
-                break;
-            case 2:
-                bullet.x -= 1;
-                bullet.y += 1;
-                break;
-            case 3:
-                bullet.x += 1;
-                bullet.y += 1;
-                break;
-            case 4:
-                bullet.x -= 1;
-                break;
-            case 5:
-                bullet.x += 1;
-                break;
-            case 6:
-                bullet.y -= 1;
-                break;
-            case 7:
-                bullet.y += 1;
-                break;
-            default:
-                break;
-            }
-
-            // 1. 범위, 장애물
-            if (!isInRange(bullet) || isObstacle(bullet))
-            {
-                // 제거
-                it = gun.erase(it);
-                continue;
-            }
-
-            // 2. 사격 판정
-            bool hit = false;
-
-            for (int id = 0; id < monsterPos.size(); ++id)
-            {
-                if (bullet.x == monsterPos[id].x && bullet.y == monsterPos[id].y)
-                {
-                    hit = true;
-                    monsterPos.erase(id);
-                    it = gun.erase(it);
-                    break;
-                }
-            }
-
-            if (!hit)
-            {
-                it->second = bullet;
-                it = next(it);
-            }
-        }
+        player.movePlayer();
+        player.shoot();
     }
     break;
     case 4:
     {
-
         KillTimer(hWnd, 4);
 
-        if (isWaiting)
+        if (gameState.waiting)
         {
-            isWaiting = false;
-            // 게임 종료 
-            gameOver = true;
+            gameState.waiting = false;
+            gameState.gameOver = true;
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
             // TODO. 바로 업데이트
