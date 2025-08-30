@@ -1,6 +1,12 @@
 ﻿#include "Player.h"
 #include "Input.h"
 
+
+void Player::setPos(POINT pos)
+{
+    this->pos = pos;
+}
+
 void Player::movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monsterPos)
 {
     MoveDir dir = Input::Get().getMoveDir();

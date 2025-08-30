@@ -2,11 +2,15 @@
 
 #include <vector>
 #include <list>
-#include "AStar.h"
+#include <random>
+#include "Windows.h"
 #include "Resource.h"
 
+#include "Setting.h"
+#include "GameState.h"
+#include "Player.h"
+
 // TODO. 헤더 인클루드 정리
-// 사실상 resource.h는 winAPI.h에 포함돼 있음
 
 using namespace std;
 
@@ -22,21 +26,18 @@ public:
 	~Game() = default;
 
 public:
-	void init();
-	void update();
+	void init(HWND hWnd);
+	void update(HWND hWnd, WPARAM wParam);
 	void render(HDC hdc, HINSTANCE hInst);
 
     void renderBegin(HDC hdc, HINSTANCE hInst);
     void renderPlay();
     void renderEnd();
 
-// TODO. 함수. 접근 지정자를 private로 변경하기
-// init()과 update() 그리고 render()에 옮기기
-public:
-    void setPathInfo();
-    vector<deque<POINT>> getPathInfo();
+private:
+    void setPlayGround();
 
-// TODO. 접근 지정자 수정
+    // TODO. 접근 지정자 수정
 public:
     const vector<pair<POINT, float>> direction =
     {
@@ -44,6 +45,11 @@ public:
         { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
     };
 
+private:
+    GameState gameState;
+    Player player;
+
+private:
     //
     HDC back, scr;
     HBITMAP bmp, originalBmp;

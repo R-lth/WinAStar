@@ -22,6 +22,8 @@ public:
 	~Player() = default;
 	
 public:
+    void setPos(POINT pos);
+
     // TODO. grid하고 monsterPos는 전역으로 처리하는 게 나은지
     // 아니면 Game에서 책임지는 게 나은지
 	void movePlayer(const vector<vector<int>>& grid, map<int, POINT>& monsterPos);

@@ -45,7 +45,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     MSG msg = {};
-    game.init();
+    game.init(hWnd);
 
     // 기본 메시지 루프입니다:
     while (msg.message != WM_QUIT)
