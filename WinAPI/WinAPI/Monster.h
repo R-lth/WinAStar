@@ -16,8 +16,8 @@ public:
 
 private:
     bool okToGo(POINT pos);
-    bool CollideWithPlayer(POINT pos);
-    bool CollideWithOtherMonsters(int id, POINT pos);
+    bool collideWithPlayer(POINT pos);
+    bool collideWithOtherMonsters(int id, POINT pos);
 
 private:
     const vector<POINT> middleOfCorner =

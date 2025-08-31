@@ -6,7 +6,7 @@ void Monster::spawn()
 
     POINT monster = middleOfCorner[i];
 
-    if (okToGo(monster)  && !CollideWithPlayer(monster))
+    if (okToGo(monster)  && !collideWithPlayer(monster))
     {
         deque<POINT> path = aStar.findPath(monster, PlayerState::Get().playerPos, GameState::Get().grid);
 
@@ -49,13 +49,13 @@ void Monster::move(HWND hWnd)
             continue;
         }
 
-        if (CollideWithOtherMonsters(id, GameState::Get().monsterPos.at(id)))
+        if (collideWithOtherMonsters(id, GameState::Get().monsterPos.at(id)))
         {
             it = std::next(it);
             continue;
         }
 
-        if (CollideWithPlayer(GameState::Get().monsterPos.at(id)))
+        if (collideWithPlayer(GameState::Get().monsterPos.at(id)))
         {
             GameState::Get().waiting = true;
             KillTimer(hWnd, 1);
@@ -90,12 +90,12 @@ bool Monster::okToGo(POINT pos)
     return (GameState::Get().grid[pos.y][pos.x] == 0);
 }
 
-bool Monster::CollideWithPlayer(POINT pos)
+bool Monster::collideWithPlayer(POINT pos)
 {
     return (pos.x == PlayerState::Get().playerPos.x && pos.y == PlayerState::Get().playerPos.y);
 }
 
-bool Monster::CollideWithOtherMonsters(int id, POINT pos)
+bool Monster::collideWithOtherMonsters(int id, POINT pos)
 {
     for (const pair<int, POINT>& it : GameState::Get().monsterPos)
     {
