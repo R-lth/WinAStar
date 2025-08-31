@@ -226,19 +226,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
-        case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            switch (wmId)
-            {
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
         case WM_CREATE:
         {
             // 몬스터 생성 위치 관련 랜덤 값을 위한 함수
@@ -259,6 +246,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 for (int id = 0; id < GameState::Get().monsterPos.size(); ++id)
                 {
                     POINT next = GameState::Get().monsterPos[id];
+
+                    if (next.x == 0 && next.y == 0) 
+                    {
+                        continue;
+                    }
 
                     while (!GameState::Get().pathInfo[id].empty() && GameState::Get().monsterPos[id].x == next.x && GameState::Get().monsterPos[id].y == next.y)
                     {   
@@ -597,6 +589,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 GameState::Get().pathInfo[id] = path;
             }
 
+
+            ///////////////////////////////////////////////
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
         break;
