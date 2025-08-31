@@ -7,17 +7,12 @@ void Game::init(RECT rect)
     height = rect.bottom - rect.top;
 }
 
-void Game::render(HDC hdc, HINSTANCE hInst,
-    bool gameOver, bool waiting, bool pHoriz, bool pUp, bool pFilp, 
-        POINT playerPos, map<int, POINT> monsterPos,
-        const vector<vector<int>> grid, list<pair<int, POINT>> gun)
+void Game::render(HDC hdc, HINSTANCE hInst)
 {
     // 로드
     renderBegin(hdc, hInst);
     // 그리기
-    renderPlay(gameOver, waiting, pHoriz, pUp, pFilp, 
-        playerPos, monsterPos,
-        grid, gun);
+    renderPlay();
     // 실제 화면 출력
     BitBlt(hdc, 0, 0, width, height, back, 0, 0, SRCCOPY);
     // 해제
@@ -59,43 +54,41 @@ void Game::renderBegin(HDC hdc, HINSTANCE hInst)
     deadBmp = LoadBitmap(hInst, MAKEINTRESOURCE(IDB_DEAD));
 }
 
-void Game::renderPlay(bool gameOver, bool waiting, bool pHoriz, bool pUp, bool pFilp, 
-    POINT playerPos, map<int, POINT> monsterPos,
-                            const vector<vector<int>> grid, list<pair<int, POINT>> gun)
+void Game::renderPlay()
 {
-    if (!gameOver)
+    if (!GameState::Get().gameOver)
     {
         for (int y = 0; y < n; ++y)
         {
             for (int x = 0; x < n; ++x)
             {
-                HBITMAP tile = grid[y][x] ? groundBmp[1] : groundBmp[0];
+                HBITMAP tile = GameState::Get().grid[y][x] ? groundBmp[1] : groundBmp[0];
                 SelectObject(scr, tile);
                 BitBlt(back, x * cell, y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
         }
 
-        if (!waiting)
+        if (!GameState::Get().waiting)
         {
             // 플레이어
-            if (pHoriz)
+            if (GameState::Get().pHoriz)
             {
-                HBITMAP pSprite = pFilp ? playerBmp[1] : playerBmp[2];
+                HBITMAP pSprite = GameState::Get().pFilp ? playerBmp[1] : playerBmp[2];
                 SelectObject(scr, pSprite);
             }
             else
             {
-                HBITMAP pSprite = pUp ? playerBmp[3] : playerBmp[0];
+                HBITMAP pSprite = GameState::Get().pUp ? playerBmp[3] : playerBmp[0];
                 SelectObject(scr, pSprite);
             }
-            BitBlt(back, playerPos.x * cell, playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            BitBlt(back, GameState::Get().playerPos.x * cell, GameState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터
             HBITMAP mSprite = mFilp ? monsterBmp[0] : monsterBmp[1];
             mFilp = !mFilp;
             SelectObject(scr, mSprite);
 
-            for (const pair<int, POINT>& it : monsterPos)
+            for (const pair<int, POINT>& it : GameState::Get().monsterPos)
             {
                 POINT pos = it.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -104,7 +97,7 @@ void Game::renderPlay(bool gameOver, bool waiting, bool pHoriz, bool pUp, bool p
             // 총알
             SelectObject(scr, bulletBmp);
             using It = list<pair<int, POINT>>::iterator;
-            for (It it = gun.begin(); it != gun.end();)
+            for (It it = GameState::Get().gun.begin(); it != GameState::Get().gun.end();)
             {
                 POINT bullet = it->second;
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -115,11 +108,11 @@ void Game::renderPlay(bool gameOver, bool waiting, bool pHoriz, bool pUp, bool p
         {
             // 플레이어 죽음
             SelectObject(scr, deadBmp);
-            BitBlt(back, playerPos.x * cell, playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            BitBlt(back, GameState::Get().playerPos.x * cell, GameState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터 죽음
             SelectObject(scr, deadBmp);
-            for (const pair<int, POINT>& it : monsterPos)
+            for (const pair<int, POINT>& it : GameState::Get().monsterPos)
             {
                 POINT pos = it.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -128,7 +121,7 @@ void Game::renderPlay(bool gameOver, bool waiting, bool pHoriz, bool pUp, bool p
             // 총알 지우기
             SelectObject(scr, groundBmp[0]);
             using It = list<pair<int, POINT>>::iterator;
-            for (It it = gun.begin(); it != gun.end();)
+            for (It it = GameState::Get().gun.begin(); it != GameState::Get().gun.end();)
             {
                 POINT bullet = it->second;
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);

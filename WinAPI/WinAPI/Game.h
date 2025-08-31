@@ -1,9 +1,8 @@
 ﻿#pragma once
 
-#include <vector>
-#include <map>
-#include <list>
-#include "Windows.h"
+#include "GameState.h"
+
+// TODO. pch.h 활용하기
 
 using namespace std;
 
@@ -12,15 +11,10 @@ class Game
 public:
 	void init(RECT rect);
 	//void update();
-	void render(HDC hdc, HINSTANCE hInst,
-        bool gameOver, bool waiting, bool pHoriz, bool pUp, bool pFilp,
-            POINT playerPos, map<int, POINT> monsterPos,
-            const vector<vector<int>> grid, list<pair<int, POINT>> gun);
+	void render(HDC hdc, HINSTANCE hInst);
 
 	void renderBegin(HDC hdc, HINSTANCE hInst);
-	void renderPlay(bool gameOver, bool waiting, bool pHoriz, bool pUp, bool pFilp,
-        POINT playerPos, map<int, POINT> monsterPos,
-        const vector<vector<int>> grid, list<pair<int, POINT>> gun);
+	void renderPlay();
 	void renderEnd();
 
 private:
