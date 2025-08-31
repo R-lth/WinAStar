@@ -8,6 +8,19 @@
 
 using namespace std;
 
+enum class ShootDir 
+{
+    UpLeft,
+    UpRight,
+    DownLeft,
+    DownRight,
+    Up,
+    Left,
+    Down,
+    Right,
+    None
+};
+
 // TODO. GameState 하위로 관리할지에 대해서 고민해 보기
 class PlayerState : public Singleton<PlayerState> 
 {
@@ -25,5 +38,5 @@ public:
     bool pVert = false;
     bool pFilp = false;
     
-    list<pair<int, POINT>> gun;
+    list<pair<ShootDir, POINT>> gun;
 };

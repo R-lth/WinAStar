@@ -96,7 +96,7 @@ void Game::renderPlay()
 
             // 총알
             SelectObject(scr, bulletBmp);
-            using It = list<pair<int, POINT>>::iterator;
+            using It = list<pair<ShootDir, POINT>>::iterator;
             for (It it = PlayerState::Get().gun.begin(); it != PlayerState::Get().gun.end();)
             {
                 POINT bullet = it->second;
@@ -120,7 +120,7 @@ void Game::renderPlay()
 
             // 총알 지우기
             SelectObject(scr, groundBmp[0]);
-            using It = list<pair<int, POINT>>::iterator;
+            using It = list<pair<ShootDir, POINT>>::iterator;
             for (It it = PlayerState::Get().gun.begin(); it != PlayerState::Get().gun.end();)
             {
                 POINT bullet = it->second;
