@@ -73,7 +73,7 @@ void Player::move(bool wasd[4])
         deque<POINT> path = aStar.findPath(GameState::Get().monsterPos.at(id), PlayerState::Get().playerPos, GameState::Get().grid);
 
         // 플레이어 기준으로 몬스터 경로 갱신
-        if (id < 0 && id >= GameState::Get().pathInfo.size() && !path.empty())
+        if (id >= 0 && id < GameState::Get().pathInfo.size() && !path.empty())
         {
             GameState::Get().pathInfo[id] = path;
         }
