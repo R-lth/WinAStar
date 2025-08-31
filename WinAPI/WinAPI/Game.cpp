@@ -1,10 +1,18 @@
 ﻿#include "Game.h"
 #include "Resource.h"
 
-void Game::init(RECT rect)
+void Game::init(HWND hWnd, RECT rect)
 {
     width = rect.right - rect.left;
     height = rect.bottom - rect.top;
+
+    // 몬스터 생성 위치 관련 랜덤 값을 위한 함수
+    srand(time(NULL));
+
+    // 타이머
+    SetTimer(hWnd, 1, 150 * 2, NULL);
+    SetTimer(hWnd, 2, 1500, NULL);
+    SetTimer(hWnd, 3, 150, NULL);
 }
 
 void Game::render(HDC hdc, HINSTANCE hInst)

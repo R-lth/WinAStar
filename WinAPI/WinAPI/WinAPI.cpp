@@ -22,8 +22,8 @@ Game game;
 
 #pragma region 전역
 RECT rect;
-AStar aStar;
 Player player;
+AStar aStar;
 
 bool isInRange(POINT pos)
 {
@@ -128,7 +128,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     MSG msg = {};
-    game.init(rect);
+    game.init(hWnd, rect);
 
     // 기본 메시지 루프입니다:
     while (msg.message != WM_QUIT)
@@ -225,17 +225,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
-        case WM_CREATE:
-        {
-            // 몬스터 생성 위치 관련 랜덤 값을 위한 함수
-            srand(time(NULL));
-
-            // 타이머
-            SetTimer(hWnd, 1, 150 * 2, NULL);
-            SetTimer(hWnd, 2, 1500, NULL);
-            SetTimer(hWnd, 3, 150, NULL);
-        }
-        break;
         case WM_TIMER:
         {
             switch (wParam)

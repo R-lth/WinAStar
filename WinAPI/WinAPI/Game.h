@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <random>
 #include "GameState.h"
 #include "PlayerState.h"
 // TODO. pch.h 활용하기
@@ -9,7 +10,7 @@ using namespace std;
 class Game
 {
 public:
-	void init(RECT rect);
+	void init(HWND hWnd, RECT rect);
 	//void update();
 	void render(HDC hdc, HINSTANCE hInst);
 
