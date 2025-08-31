@@ -4,23 +4,24 @@
 
 #define IDB_AISLE               4001
 #define IDB_BRICK               4002
-#define IDB_CHARACTER1          4004
-#define IDB_CHARACTER2          4005
-#define IDB_START               4006
-#define IDB_GOAL                4007
-#define IDB_GOALLEFT            4008
-#define IDB_GOALRIGHT           4009
-#define IDB_GOALUP              4010
-#define IDB_DEAD                4011
-#define IDB_BLACK               4012
-#define IDB_CH1                 4013
-#define IDB_CH2                 4014
-#define IDB_CH3                 4015
-#define IDB_CH4                 4016
-#define IDB_CH5                 4017
-#define IDB_CH6                 4018
-#define IDB_CH7                 4019
-#define IDB_BULLET              4020
+#define IDB_CHARACTER1          4003
+#define IDB_CHARACTER2          4004
+#define IDB_START               4005
+#define IDB_GOAL                4006
+#define IDB_GOALLEFT            4007
+#define IDB_GOALRIGHT           4008
+#define IDB_GOALUP              4009
+#define IDB_DEAD                4010
+#define IDB_BLACK               4011
+
+#define IDB_CH1                 4012
+#define IDB_CH2                 4013
+#define IDB_CH3                 4014
+#define IDB_CH4                 4015
+#define IDB_CH5                 4016
+#define IDB_CH6                 4017
+#define IDB_CH7                 4018
+#define IDB_BULLET              4019
 
 #define IDS_APP_TITLE			103
 
