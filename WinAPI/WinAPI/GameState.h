@@ -1,10 +1,6 @@
 ﻿#pragma once
 
-#include <vector>
-#include <deque>
-#include <map>
-#include "Windows.h"
-
+#include "pch.h"
 #include "Singleton.h"
 
 using namespace std;

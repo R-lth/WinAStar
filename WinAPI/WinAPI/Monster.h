@@ -1,10 +1,6 @@
 ﻿#pragma once
 
-#include <vector>
-#include <Windows.h>
-#include "GameState.h"
-#include "PlayerState.h"
-#include "AStar.h"
+#include "pch.h"
 
 using namespace std;
 

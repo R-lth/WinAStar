@@ -1,13 +1,9 @@
 ﻿#pragma once
 
 #include <random>
-#include "GameState.h"
-#include "PlayerState.h"
+#include "pch.h"
 #include "Player.h"
 #include "Monster.h"
-#include "AStar.h"
-
-// TODO. pch.h 활용하기
 
 using namespace std;
 

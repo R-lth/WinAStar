@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include "GameState.h"
-#include "PlayerState.h"
-#include "AStar.h"
+#include "pch.h"
 
 class Player
 {

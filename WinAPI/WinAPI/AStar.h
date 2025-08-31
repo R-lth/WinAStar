@@ -1,11 +1,6 @@
 ﻿#pragma once
 
-#include <vector>
-#include <queue>
-#include <map>
-#include <deque>
-#include "Windows.h"
-#include "Types.h"
+#include "pch.h"
 
 using namespace std;
 
