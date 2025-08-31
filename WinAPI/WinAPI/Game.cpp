@@ -21,89 +21,12 @@ void Game::update(HWND hWnd, WPARAM wParam)
     {
     case 1:
     {
-        using IT = std::map<int, POINT>::iterator;
-        for (IT it = GameState::Get().monsterPos.begin(); it != GameState::Get().monsterPos.end();)
-        {
-            const int id = it->first;
-            POINT next = it->second;
-
-            if (id < 0 || id >= GameState::Get().pathInfo.size())
-            {
-                it = std::next(it);
-                continue;
-            }
-
-            // 경로 소비
-            // 맵의 at()은 key에 해당하는 값에 접근하는 함수로, []과 달리 키가 존재하지 않으면 접근하지 않는다.
-            // []은 키가 없을 시 자동으로 삽입한다.
-            while (!GameState::Get().pathInfo[id].empty() &&
-                GameState::Get().monsterPos.at(id).x == next.x && GameState::Get().monsterPos.at(id).y == next.y)
-            {
-                next = GameState::Get().pathInfo[id].front();
-                GameState::Get().pathInfo[id].pop_front();
-            }
-
-            if (!isInRange(GameState::Get().monsterPos.at(id)) || isObstacle(GameState::Get().monsterPos.at(id))) {
-                it = std::next(it);
-                continue;
-            }
-            if (CollideWithOtherMonsters(id, GameState::Get().monsterPos.at(id)))
-            {
-                it = std::next(it);
-                continue;
-            }
-
-            if (CollideWithPlayer(GameState::Get().monsterPos.at(id)))
-            {
-                GameState::Get().waiting = true;
-                KillTimer(hWnd, 1);
-                KillTimer(hWnd, 2);
-                KillTimer(hWnd, 3);
-                SetTimer(hWnd, 4, 2000, NULL);
-                break;
-            }
-            else
-            {
-                // 위치 갱신
-                it->second = next;
-                // 경로 재계산
-                deque<POINT> path = aStar.findPath(it->second, PlayerState::Get().playerPos, GameState::Get().grid);
-                if (id >= 0 && id < GameState::Get().pathInfo.size() && !path.empty())
-                {
-                    GameState::Get().pathInfo[id] = path;
-                }
-                //
-                it = std::next(it);
-            }
-        }
+        monster.move(hWnd);
     }
     break;
     case 2:
     {
-        // 몬스터 생성
-        const vector<POINT> center =
-        {
-            {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
-            {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
-            {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
-            {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
-        };
-
-        int i = rand() % center.size();
-
-        POINT monster = center[i];
-
-        if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster))
-        {
-            deque<POINT> path = aStar.findPath(monster, PlayerState::Get().playerPos, GameState::Get().grid);
-
-            if (!path.empty())
-            {
-                GameState::Get().pathInfo.emplace_back(path);
-                int id = GameState::Get().pathInfo.size() - 1;
-                GameState::Get().monsterPos.insert({ id, monster });
-            }
-        }
+        monster.spawn();
     }
     break;
     case 3:
