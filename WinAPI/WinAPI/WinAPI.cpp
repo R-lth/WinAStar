@@ -330,14 +330,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case 3:
                 {
-                    // TODO. 총알 위치 갱신 및 피격 판정
-                    using It = list<pair<ShootDir, POINT>>::iterator;
-                    for (It it = PlayerState::Get().gun.begin(); it != PlayerState::Get().gun.end();)
-                    {
-                        // 반복자 위치 갱신
-                        POINT bullet = it->second;
+                    using It_gun = std::list<std::pair<ShootDir, POINT>>::iterator;
+                    using It_mp = std::map<int, POINT>::iterator;
 
-                        switch (it->first)
+                    for (It_gun it_g = PlayerState::Get().gun.begin(); it_g != PlayerState::Get().gun.end();)
+                    {
+                        POINT bullet = it_g->second;
+
+                        switch (it_g->first)
                         {
                         case ShootDir::UpLeft:
                             bullet.x -= 1;
@@ -371,32 +371,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             break;
                         }
 
-                        // 1. 범위, 장애물
-                        if (!isInRange(bullet) || isObstacle(bullet))
+                        if (!isInRange(bullet) || isObstacle(bullet)) 
                         {
-                            // 제거
-                            it = PlayerState::Get().gun.erase(it);
+                            it_g = PlayerState::Get().gun.erase(it_g);
                             continue;
                         }
 
-                        // 2. 사격 판정
+                        // 피격
                         bool hit = false;
-
-                        for (int id = 0; id < GameState::Get().monsterPos.size(); ++id)
+                        for (It_mp it_m = GameState::Get().monsterPos.begin(); it_m != GameState::Get().monsterPos.end();)
                         {
-                            if (bullet.x == GameState::Get().monsterPos[id].x && bullet.y == GameState::Get().monsterPos[id].y)
+                            if (bullet.x == it_m->second.x && bullet.y == it_m->second.y) 
                             {
                                 hit = true;
-                                GameState::Get().monsterPos.erase(id);
-                                it = PlayerState::Get().gun.erase(it);
-                                break;
+                                it_m = GameState::Get().monsterPos.erase(it_m); 
+                                it_g = PlayerState::Get().gun.erase(it_g);     
+                                break; // 몬스터 루프만 탈출
                             }
+
+                            it_m = ::next(it_m);
                         }
 
-                        if (!hit)
+                        if (!hit) 
                         {
-                            it->second = bullet;
-                            it = next(it);
+                            it_g->second = bullet;
+                            it_g = ::next(it_g);
                         }
                     }
                 }

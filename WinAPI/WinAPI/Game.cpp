@@ -75,9 +75,9 @@ void Game::renderPlay()
             mFilp = !mFilp;
             SelectObject(scr, mSprite);
 
-            for (const pair<int, POINT>& it : GameState::Get().monsterPos)
+            for (const pair<int, POINT>& monster : GameState::Get().monsterPos)
             {
-                POINT pos = it.second;
+                POINT pos = monster.second;
                 BitBlt(back, pos.x * cell, pos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
             }
 
