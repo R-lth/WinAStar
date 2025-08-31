@@ -389,6 +389,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 break;
+            // 충돌 시
             case 4:
                 {   
                     KillTimer(hWnd, 4);
@@ -415,36 +416,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:  
         {
             // TODO. Game 객체로 프레임으로 입력 처리를 받아서, 자연스러운 입력 구현
-            bool wasd[4];
-            wasd[0] = GetAsyncKeyState('W') & 0x8000;
-            wasd[1] = GetAsyncKeyState('A') & 0x8000;
-            wasd[2] = GetAsyncKeyState('S') & 0x8000;
-            wasd[3] = GetAsyncKeyState('D') & 0x8000;
-
-            bool arrow[4];
-            arrow[0] = GetAsyncKeyState(VK_UP) & 0x8000;
-            arrow[1] = GetAsyncKeyState(VK_LEFT) & 0x8000;
-            arrow[2] = GetAsyncKeyState(VK_DOWN) & 0x8000;
-            arrow[3] = GetAsyncKeyState(VK_RIGHT) & 0x8000;
-
-            switch (wParam)
+            if (!GameState::Get().gameOver && !GameState::Get().waiting) 
             {
-            case 'W':
-            case 'A':
-            case 'S':
-            case 'D':
-                player.move(wasd);
-            break;
-            case VK_UP:
-            case VK_LEFT:
-            case VK_DOWN:
-            case VK_RIGHT:
-                player.loadingBullets(arrow);
-            break;
-            default:
-                break;
-            }
+                bool wasd[4];
+                wasd[0] = GetAsyncKeyState('W') & 0x8000;
+                wasd[1] = GetAsyncKeyState('A') & 0x8000;
+                wasd[2] = GetAsyncKeyState('S') & 0x8000;
+                wasd[3] = GetAsyncKeyState('D') & 0x8000;
 
+                bool arrow[4];
+                arrow[0] = GetAsyncKeyState(VK_UP) & 0x8000;
+                arrow[1] = GetAsyncKeyState(VK_LEFT) & 0x8000;
+                arrow[2] = GetAsyncKeyState(VK_DOWN) & 0x8000;
+                arrow[3] = GetAsyncKeyState(VK_RIGHT) & 0x8000;
+
+                switch (wParam)
+                {
+                case 'W':
+                case 'A':
+                case 'S':
+                case 'D':
+                    player.move(wasd);
+                    break;
+                case VK_UP:
+                case VK_LEFT:
+                case VK_DOWN:
+                case VK_RIGHT:
+                    player.loadingBullets(arrow);
+                    break;
+                default:
+                    break;
+                }
+            }
+           
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
         break;
