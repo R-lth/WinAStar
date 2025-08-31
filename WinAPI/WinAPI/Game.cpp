@@ -15,6 +15,192 @@ void Game::init(HWND hWnd, RECT rect)
     SetTimer(hWnd, 3, 150, NULL);
 }
 
+void Game::update(HWND hWnd, WPARAM wParam)
+{
+    switch (wParam)
+    {
+    case 1:
+    {
+        using IT = std::map<int, POINT>::iterator;
+        for (IT it = GameState::Get().monsterPos.begin(); it != GameState::Get().monsterPos.end();)
+        {
+            const int id = it->first;
+            POINT next = it->second;
+
+            if (id < 0 || id >= GameState::Get().pathInfo.size())
+            {
+                it = std::next(it);
+                continue;
+            }
+
+            // 경로 소비
+            // 맵의 at()은 key에 해당하는 값에 접근하는 함수로, []과 달리 키가 존재하지 않으면 접근하지 않는다.
+            // []은 키가 없을 시 자동으로 삽입한다.
+            while (!GameState::Get().pathInfo[id].empty() &&
+                GameState::Get().monsterPos.at(id).x == next.x && GameState::Get().monsterPos.at(id).y == next.y)
+            {
+                next = GameState::Get().pathInfo[id].front();
+                GameState::Get().pathInfo[id].pop_front();
+            }
+
+            if (!isInRange(GameState::Get().monsterPos.at(id)) || isObstacle(GameState::Get().monsterPos.at(id))) {
+                it = std::next(it);
+                continue;
+            }
+            if (CollideWithOtherMonsters(id, GameState::Get().monsterPos.at(id)))
+            {
+                it = std::next(it);
+                continue;
+            }
+
+            if (CollideWithPlayer(GameState::Get().monsterPos.at(id)))
+            {
+                GameState::Get().waiting = true;
+                KillTimer(hWnd, 1);
+                KillTimer(hWnd, 2);
+                KillTimer(hWnd, 3);
+                SetTimer(hWnd, 4, 2000, NULL);
+                break;
+            }
+            else
+            {
+                // 위치 갱신
+                it->second = next;
+                // 경로 재계산
+                deque<POINT> path = aStar.findPath(it->second, PlayerState::Get().playerPos, GameState::Get().grid);
+                if (id >= 0 && id < GameState::Get().pathInfo.size() && !path.empty())
+                {
+                    GameState::Get().pathInfo[id] = path;
+                }
+                //
+                it = std::next(it);
+            }
+        }
+
+    }
+    break;
+    case 2:
+    {
+        // 몬스터 생성
+        const vector<POINT> center =
+        {
+            {0, 7}, {0, 8}, {0, 9}, {0, 10}, {0, 11}, {0, 12},
+            {19, 7}, {19, 8}, {19, 9}, {19, 10}, {19, 11}, {19, 12},
+            {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0}, {12, 0},
+            {7, 19}, {8, 19}, {9, 19}, {10, 19}, {11, 19}, {12, 19}
+        };
+
+        int i = rand() % center.size();
+
+        POINT monster = center[i];
+
+        if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster))
+        {
+            deque<POINT> path = aStar.findPath(monster, PlayerState::Get().playerPos, GameState::Get().grid);
+
+            if (!path.empty())
+            {
+                GameState::Get().pathInfo.emplace_back(path);
+                int id = GameState::Get().pathInfo.size() - 1;
+                GameState::Get().monsterPos.insert({ id, monster });
+            }
+        }
+    }
+    break;
+    case 3:
+    {
+        using It_gun = std::list<std::pair<ShootDir, POINT>>::iterator;
+        using It_mp = std::map<int, POINT>::iterator;
+
+        for (It_gun it_g = PlayerState::Get().gun.begin(); it_g != PlayerState::Get().gun.end();)
+        {
+            POINT bullet = it_g->second;
+
+            switch (it_g->first)
+            {
+            case ShootDir::UpLeft:
+                bullet.x -= 1;
+                bullet.y -= 1;
+                break;
+            case ShootDir::UpRight:
+                bullet.x += 1;
+                bullet.y -= 1;
+                break;
+            case ShootDir::DownLeft:
+                bullet.x -= 1;
+                bullet.y += 1;
+                break;
+            case ShootDir::DownRight:
+                bullet.x += 1;
+                bullet.y += 1;
+                break;
+            case ShootDir::Up:
+                bullet.y -= 1;
+                break;
+            case ShootDir::Left:
+                bullet.x -= 1;
+                break;
+            case ShootDir::Down:
+                bullet.y += 1;
+                break;
+            case ShootDir::Right:
+                bullet.x += 1;
+                break;
+            default:
+                break;
+            }
+
+            if (!isInRange(bullet) || isObstacle(bullet))
+            {
+                it_g = PlayerState::Get().gun.erase(it_g);
+                continue;
+            }
+
+            // 피격
+            bool hit = false;
+            for (It_mp it_m = GameState::Get().monsterPos.begin(); it_m != GameState::Get().monsterPos.end();)
+            {
+                if (bullet.x == it_m->second.x && bullet.y == it_m->second.y)
+                {
+                    hit = true;
+                    it_m = GameState::Get().monsterPos.erase(it_m);
+                    it_g = PlayerState::Get().gun.erase(it_g);
+                    break; // 몬스터 루프만 탈출
+                }
+
+                it_m = ::next(it_m);
+            }
+
+            if (!hit)
+            {
+                it_g->second = bullet;
+                it_g = ::next(it_g);
+            }
+        }
+    }
+    break;
+    // 충돌 시
+    case 4:
+    {
+        KillTimer(hWnd, 4);
+
+        if (GameState::Get().waiting)
+        {
+            GameState::Get().waiting = false;
+            GameState::Get().gameOver = true;
+
+            // 다시 그려야 할 영역 무효화
+            RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
+            // 바로 업데이트
+            UpdateWindow(hWnd);
+        }
+    }
+    break;
+    default:
+        break;
+    }
+}
+
 void Game::render(HDC hdc, HINSTANCE hInst)
 {
     // 로드

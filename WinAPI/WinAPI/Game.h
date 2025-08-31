@@ -3,6 +3,7 @@
 #include <random>
 #include "GameState.h"
 #include "PlayerState.h"
+#include "AStar.h"
 // TODO. pch.h 활용하기
 
 using namespace std;
@@ -11,12 +12,51 @@ class Game
 {
 public:
 	void init(HWND hWnd, RECT rect);
-	//void update();
+	void update(HWND hWnd, WPARAM wParam);
 	void render(HDC hdc, HINSTANCE hInst);
 
 	void renderBegin(HDC hdc, HINSTANCE hInst);
 	void renderPlay();
 	void renderEnd();
+
+    // TODO. 추후 각 객체의 충돌로 분리
+private:
+    bool isInRange(POINT pos)
+    {
+        return (pos.x >= 0 && pos.x < 20 && pos.y >= 0 && pos.y < 20);
+    }
+
+    bool isObstacle(POINT pos)
+    {
+        return (GameState::Get().grid[pos.y][pos.x]);
+    }
+
+    bool CollideWithOtherMonsters(int id, POINT pos)
+    {
+        for (const pair<int, POINT>& it : GameState::Get().monsterPos)
+        {
+            if (id == it.first)
+            {
+                continue;
+            }
+
+            POINT other = it.second;
+            if (pos.x == other.x && pos.y == other.y)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool CollideWithPlayer(POINT pos)
+    {
+        return (pos.x == PlayerState::Get().playerPos.x && pos.y == PlayerState::Get().playerPos.y);
+    }
+
+private:
+    AStar aStar;
 
 private:
     HDC back, scr;
