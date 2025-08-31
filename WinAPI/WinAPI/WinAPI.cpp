@@ -438,9 +438,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             arrow[1] = GetAsyncKeyState(VK_LEFT) & 0x8000;
             arrow[2] = GetAsyncKeyState(VK_DOWN) & 0x8000;
             arrow[3] = GetAsyncKeyState(VK_RIGHT) & 0x8000;
-            
-            player.move(wasd);
-            player.loadingBullets(arrow);
+
+            switch (wParam)
+            {
+            case 'W':
+            case 'A':
+            case 'S':
+            case 'D':
+                player.move(wasd);
+            break;
+            case VK_UP:
+            case VK_LEFT:
+            case VK_DOWN:
+            case VK_RIGHT:
+                player.loadingBullets(arrow);
+            break;
+            default:
+                break;
+            }
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
         }
