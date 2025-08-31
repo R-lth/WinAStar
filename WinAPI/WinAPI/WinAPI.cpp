@@ -4,14 +4,7 @@
 #include "framework.h"
 #include "WinAPI.h"
 
-#include <random>
-
-#include "pch.h"
-#include "AStar.h"
 #include "Game.h"
-#include "GameState.h"
-#include "PlayerState.h"
-#include "Player.h"
 
 #define MAX_LOADSTRING 100
 
