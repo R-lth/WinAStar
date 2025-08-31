@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <vector>
+#include <deque>
 #include <map>
 #include "Windows.h"
 
@@ -21,7 +22,7 @@ public:
     bool gameOver = false;
     bool waiting = false;
     
-    // TODO.
     vector<vector<int>> grid;
+    vector<deque<POINT>> pathInfo;
     map<int, POINT> monsterPos;
 };

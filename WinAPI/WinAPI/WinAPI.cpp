@@ -24,16 +24,7 @@ Game game;
 
 #pragma region 전역
 RECT rect;
-
 AStar aStar;
-// index : 몬스터 ID, 값 : 몬스터 경로
-vector<deque<POINT>> pathInfo;
-
-const std::vector<pair<POINT, float>> direction =
-{
-    { {0, 1}, 1.0f }, { {0, -1}, 1.0f }, { {1, 0}, 1.0f }, { { -1, 0}, 1.0f},
-    { {1, 1}, 1.414f }, { {1, -1}, 1.414f }, { {-1, 1}, 1.414f}, { { -1, -1}, 1.414f}
-};
 
 bool isInRange(POINT pos)
 {
@@ -95,7 +86,7 @@ bool CanSpawn(POINT pos)
         return false;
     }
 
-    for (const deque<POINT>& path : pathInfo) 
+    for (const deque<POINT>& path : GameState::Get().pathInfo) 
     {
         for (const POINT& monster : path) 
         {
@@ -287,10 +278,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     POINT next = GameState::Get().monsterPos[id];
 
-                    while (!pathInfo[id].empty() && GameState::Get().monsterPos[id].x == next.x && GameState::Get().monsterPos[id].y == next.y)
+                    while (!GameState::Get().pathInfo[id].empty() && GameState::Get().monsterPos[id].x == next.x && GameState::Get().monsterPos[id].y == next.y)
                     {   
-                        next = pathInfo[id].front();
-                        pathInfo[id].pop_front();
+                        next = GameState::Get().pathInfo[id].front();
+                        GameState::Get().pathInfo[id].pop_front();
                     }
                     
                     if (!isInRange(GameState::Get().monsterPos[id]) || isObstacle(GameState::Get().monsterPos[id]))
@@ -320,7 +311,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         // TODO. A*의 대각선 {x, y} 값 고려하기
                         GameState::Get().monsterPos[id] = next;
                         deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], PlayerState::Get().playerPos, GameState::Get().grid);
-                        pathInfo[id] = path;
+                        GameState::Get().pathInfo[id] = path;
                     }
                 }
             }
@@ -343,8 +334,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster)) 
                 {
                     deque<POINT> path = aStar.findPath(monster, PlayerState::Get().playerPos, GameState::Get().grid);
-                    pathInfo.emplace_back(path);
-                    int id = pathInfo.size() - 1;
+                    GameState::Get().pathInfo.emplace_back(path);
+                    int id = GameState::Get().pathInfo.size() - 1;
                     GameState::Get().monsterPos.insert({ id, monster });
                 }
             }
@@ -621,7 +612,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             for (int id = 0; id < GameState::Get().monsterPos.size(); ++id)
             {
                 deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], PlayerState::Get().playerPos, GameState::Get().grid);
-                pathInfo[id] = path;     
+                GameState::Get().pathInfo[id] = path;
             }
 
             RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE);
