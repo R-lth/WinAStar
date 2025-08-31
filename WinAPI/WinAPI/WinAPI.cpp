@@ -241,24 +241,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
         case WM_CREATE:
         {
-
-            // 그리드 설정
-            for (int i = 0; i < 20; ++i)
-            {
-                GameState::Get().grid[0][i] = 1;
-                GameState::Get().grid[19][i] = 1;
-                GameState::Get().grid[i][0] = 1;
-                GameState::Get().grid[i][19] = 1;
-            }
-
-            for (int i = 7; i < 13; ++i)
-            {
-                GameState::Get().grid[0][i] = 0;
-                GameState::Get().grid[19][i] = 0;
-                GameState::Get().grid[i][0] = 0;
-                GameState::Get().grid[i][19] = 0;
-            }
-
             // 몬스터 생성 위치 관련 랜덤 값을 위한 함수
             srand(time(NULL));
 
