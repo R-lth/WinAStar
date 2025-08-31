@@ -66,7 +66,7 @@ bool CollideWithOtherMonsters(int id, POINT pos)
 
 bool CollideWithPlayer(POINT pos) 
 {
-    return (pos.x == GameState::Get().playerPos.x && pos.y == GameState::Get().playerPos.y);
+    return (pos.x == PlayerState::Get().playerPos.x && pos.y == PlayerState::Get().playerPos.y);
 }
 
 bool CollideWithAllMonsters(POINT pos) 
@@ -319,7 +319,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         // TODO. A*의 대각선 {x, y} 값 고려하기
                         GameState::Get().monsterPos[id] = next;
-                        deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], GameState::Get().playerPos, GameState::Get().grid);
+                        deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], PlayerState::Get().playerPos, GameState::Get().grid);
                         pathInfo[id] = path;
                     }
                 }
@@ -342,7 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(monster) && !isObstacle(monster) && !CollideWithPlayer(monster)) 
                 {
-                    deque<POINT> path = aStar.findPath(monster, GameState::Get().playerPos, GameState::Get().grid);
+                    deque<POINT> path = aStar.findPath(monster, PlayerState::Get().playerPos, GameState::Get().grid);
                     pathInfo.emplace_back(path);
                     int id = pathInfo.size() - 1;
                     GameState::Get().monsterPos.insert({ id, monster });
@@ -353,7 +353,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     // TODO. 총알 위치 갱신 및 피격 판정
                     using It = list<pair<int, POINT>>::iterator;
-                    for (It it = GameState::Get().gun.begin(); it != GameState::Get().gun.end();)
+                    for (It it = PlayerState::Get().gun.begin(); it != PlayerState::Get().gun.end();)
                     {
                         // 반복자 위치 갱신
                         POINT bullet = it->second;
@@ -396,7 +396,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         if (!isInRange(bullet) || isObstacle(bullet))
                         {
                             // 제거
-                            it = GameState::Get().gun.erase(it);
+                            it = PlayerState::Get().gun.erase(it);
                             continue;
                         }
 
@@ -409,7 +409,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             {
                                 hit = true;
                                 GameState::Get().monsterPos.erase(id);
-                                it = GameState::Get().gun.erase(it);
+                                it = PlayerState::Get().gun.erase(it);
                                 break;
                             }
                         }
@@ -449,7 +449,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_KEYDOWN:  
         {
             // TODO. Game 객체로 프레임으로 입력 처리를 받아서, 자연스러운 입력 구현
-            POINT next = GameState::Get().playerPos;
+            POINT next = PlayerState::Get().playerPos;
 
             bool a = GetAsyncKeyState(0x41) & 0x8000;
             bool d = GetAsyncKeyState(0x44) & 0x8000;
@@ -466,56 +466,56 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 next.x -= 1;
                 next.y -= 1;
                 // 
-                GameState::Get().pHoriz = false;
-                GameState::Get().pUp = true;
+                PlayerState::Get().pHoriz = false;
+                PlayerState::Get().pVert = true;
             }
             else if (d && w) 
             {
                 next.x += 1;
                 next.y -= 1;
                 //
-                GameState::Get().pHoriz = false;
-                GameState::Get().pUp = true;
+                PlayerState::Get().pHoriz = false;
+                PlayerState::Get().pVert = true;
             }
             else if (a && s) 
             {
                 next.x -= 1;
                 next.y += 1;
                 //
-                GameState::Get().pHoriz = false;
-                GameState::Get().pUp = false;
+                PlayerState::Get().pHoriz = false;
+                PlayerState::Get().pVert = false;
             }
             else if (d && s) 
             {
                 next.x += 1;
                 next.y += 1;
                 // 
-                GameState::Get().pHoriz = false;
-                GameState::Get().pUp = false;
+                PlayerState::Get().pHoriz = false;
+                PlayerState::Get().pVert = false;
             }
             else if (a) 
             {
                 next.x -= 1;
-                GameState::Get().pHoriz = true;
-                GameState::Get().pFilp = !GameState::Get().pFilp;
+                PlayerState::Get().pHoriz = true;
+                PlayerState::Get().pFilp = !PlayerState::Get().pFilp;
             }
             else if (d) 
             {
                 next.x += 1;
-                GameState::Get().pHoriz = true;
-                GameState::Get().pFilp = !GameState::Get().pFilp;
+                PlayerState::Get().pHoriz = true;
+                PlayerState::Get().pFilp = !PlayerState::Get().pFilp;
             }
             else if (w) 
             {
                 next.y -= 1;
-                GameState::Get().pHoriz = false;
-                GameState::Get().pUp = true;
+                PlayerState::Get().pHoriz = false;
+                PlayerState::Get().pVert = true;
             }
             else if (s) 
             {
                 next.y += 1;
-                GameState::Get().pHoriz = false;
-                GameState::Get().pUp = false;
+                PlayerState::Get().pHoriz = false;
+                PlayerState::Get().pVert = false;
             }
 
             // 플레이어 충돌 처리
@@ -527,7 +527,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 총알 생성
             ///////////////////////////////////////////////
             int dir = 0;
-            POINT bullet = GameState::Get().playerPos;
+            POINT bullet = PlayerState::Get().playerPos;
 
             if (left && up)
             {
@@ -537,7 +537,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (right && up)
@@ -548,7 +548,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (left && down)
@@ -559,7 +559,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (right && down)
@@ -570,7 +570,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (left)
@@ -580,7 +580,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (right)
@@ -590,7 +590,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (up)
@@ -600,7 +600,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             else if (down)
@@ -610,17 +610,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 if (isInRange(bullet) && !isObstacle(bullet))
                 {
-                    GameState::Get().gun.push_back({ dir, bullet });
+                    PlayerState::Get().gun.push_back({ dir, bullet });
                 }
             }
             ///////////////////////////////////////////////
 
-            GameState::Get().playerPos = next;
+            PlayerState::Get().playerPos = next;
 
             // 플레이어 이동에 따른 몬스터 경로 갱신
             for (int id = 0; id < GameState::Get().monsterPos.size(); ++id)
             {
-                deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], GameState::Get().playerPos, GameState::Get().grid);
+                deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], PlayerState::Get().playerPos, GameState::Get().grid);
                 pathInfo[id] = path;     
             }
 

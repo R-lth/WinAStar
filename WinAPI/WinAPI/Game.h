@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "GameState.h"
-
+#include "PlayerState.h"
 // TODO. pch.h 활용하기
 
 using namespace std;

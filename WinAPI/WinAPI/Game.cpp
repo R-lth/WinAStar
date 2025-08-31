@@ -71,17 +71,17 @@ void Game::renderPlay()
         if (!GameState::Get().waiting)
         {
             // 플레이어
-            if (GameState::Get().pHoriz)
+            if (PlayerState::Get().pHoriz)
             {
-                HBITMAP pSprite = GameState::Get().pFilp ? playerBmp[1] : playerBmp[2];
+                HBITMAP pSprite = PlayerState::Get().pFilp ? playerBmp[1] : playerBmp[2];
                 SelectObject(scr, pSprite);
             }
             else
             {
-                HBITMAP pSprite = GameState::Get().pUp ? playerBmp[3] : playerBmp[0];
+                HBITMAP pSprite = PlayerState::Get().pVert ? playerBmp[3] : playerBmp[0];
                 SelectObject(scr, pSprite);
             }
-            BitBlt(back, GameState::Get().playerPos.x * cell, GameState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            BitBlt(back, PlayerState::Get().playerPos.x * cell, PlayerState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터
             HBITMAP mSprite = mFilp ? monsterBmp[0] : monsterBmp[1];
@@ -97,7 +97,7 @@ void Game::renderPlay()
             // 총알
             SelectObject(scr, bulletBmp);
             using It = list<pair<int, POINT>>::iterator;
-            for (It it = GameState::Get().gun.begin(); it != GameState::Get().gun.end();)
+            for (It it = PlayerState::Get().gun.begin(); it != PlayerState::Get().gun.end();)
             {
                 POINT bullet = it->second;
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
@@ -108,7 +108,7 @@ void Game::renderPlay()
         {
             // 플레이어 죽음
             SelectObject(scr, deadBmp);
-            BitBlt(back, GameState::Get().playerPos.x * cell, GameState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
+            BitBlt(back, PlayerState::Get().playerPos.x * cell, PlayerState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
 
             // 몬스터 죽음
             SelectObject(scr, deadBmp);
@@ -121,7 +121,7 @@ void Game::renderPlay()
             // 총알 지우기
             SelectObject(scr, groundBmp[0]);
             using It = list<pair<int, POINT>>::iterator;
-            for (It it = GameState::Get().gun.begin(); it != GameState::Get().gun.end();)
+            for (It it = PlayerState::Get().gun.begin(); it != PlayerState::Get().gun.end();)
             {
                 POINT bullet = it->second;
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
