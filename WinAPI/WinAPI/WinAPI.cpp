@@ -4,10 +4,6 @@
 #include "framework.h"
 #include "WinAPI.h"
 
-#include <map>
-#include <queue>
-#include <deque>
-#include <list>
 #include <random>
 
 #include "pch.h"
@@ -243,51 +239,60 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
             case 1:
             {
-                for (int id = 0; id < GameState::Get().monsterPos.size(); ++id)
+                using IT = std::map<int, POINT>::iterator;
+                for (IT it = GameState::Get().monsterPos.begin(); it != GameState::Get().monsterPos.end();)
                 {
-                    POINT next = GameState::Get().monsterPos[id];
+                    const int id = it->first;
+                    POINT next = it->second;
 
-                    if (next.x == 0 && next.y == 0) 
-                    {
+                    if (id < 0 || id >= GameState::Get().pathInfo.size()) {
+                        it = std::next(it);
                         continue;
                     }
 
-                    while (!GameState::Get().pathInfo[id].empty() && GameState::Get().monsterPos[id].x == next.x && GameState::Get().monsterPos[id].y == next.y)
-                    {   
+                    // 경로 소비
+                    // 맵의 at()은 key에 해당하는 값에 접근하는 함수로, []과 달리 키가 존재하지 않으면 접근하지 않는다.
+                    // []은 키가 없을 시 자동으로 삽입한다.
+                    while (!GameState::Get().pathInfo[id].empty() &&
+                        GameState::Get().monsterPos.at(id).x == next.x && GameState::Get().monsterPos.at(id).y == next.y)
+                    {
                         next = GameState::Get().pathInfo[id].front();
                         GameState::Get().pathInfo[id].pop_front();
                     }
-                    
-                    if (!isInRange(GameState::Get().monsterPos[id]) || isObstacle(GameState::Get().monsterPos[id]))
-                    {
+
+                    if (!isInRange(GameState::Get().monsterPos.at(id)) || isObstacle(GameState::Get().monsterPos.at(id))) {
+                        it = std::next(it);
                         continue;
                     }
-                    
-                    if (CollideWithOtherMonsters(id, GameState::Get().monsterPos[id]))
-                    {
+                    if (CollideWithOtherMonsters(id, GameState::Get().monsterPos.at(id))) {
+                        it = std::next(it);
                         continue;
                     }
 
-                    // 키가 눌리지 않아도, 플레이어와 몬스터 간의 충돌이 가능하도록
-                    if (CollideWithPlayer(GameState::Get().monsterPos[id]))
+                    if (CollideWithPlayer(GameState::Get().monsterPos.at(id))) 
                     {
                         GameState::Get().waiting = true;
-                        KillTimer(hWnd, 1);
-                        KillTimer(hWnd, 2);
+                        KillTimer(hWnd, 1); 
+                        KillTimer(hWnd, 2); 
                         KillTimer(hWnd, 3);
-
-                        // 2초 후 
                         SetTimer(hWnd, 4, 2000, NULL);
-                        break;
+                        break; 
                     }
                     else 
                     {
-                        // TODO. A*의 대각선 {x, y} 값 고려하기
-                        GameState::Get().monsterPos[id] = next;
-                        deque<POINT> path = aStar.findPath(GameState::Get().monsterPos[id], PlayerState::Get().playerPos, GameState::Get().grid);
-                        GameState::Get().pathInfo[id] = path;
+                        // 위치 갱신
+                        it->second = next; 
+                        // 경로 재계산
+                        deque<POINT> path = aStar.findPath(it->second, PlayerState::Get().playerPos, GameState::Get().grid);
+                        if (id >= 0 && id < GameState::Get().pathInfo.size()) 
+                        {
+                            GameState::Get().pathInfo[id] = path;
+                        }
+                        //
+                        it = std::next(it);
                     }
                 }
+
             }
                 break;
             case 2:
