@@ -70,19 +70,6 @@ void Game::renderPlay()
 
         if (!GameState::Get().waiting)
         {
-            // 플레이어
-            if (PlayerState::Get().pHoriz)
-            {
-                HBITMAP pSprite = PlayerState::Get().pFilp ? playerBmp[1] : playerBmp[2];
-                SelectObject(scr, pSprite);
-            }
-            else
-            {
-                HBITMAP pSprite = PlayerState::Get().pVert ? playerBmp[3] : playerBmp[0];
-                SelectObject(scr, pSprite);
-            }
-            BitBlt(back, PlayerState::Get().playerPos.x * cell, PlayerState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-
             // 몬스터
             HBITMAP mSprite = mFilp ? monsterBmp[0] : monsterBmp[1];
             mFilp = !mFilp;
@@ -103,13 +90,22 @@ void Game::renderPlay()
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 it = next(it);
             }
+
+            // 플레이어
+            if (PlayerState::Get().pHoriz)
+            {
+                HBITMAP pSprite = PlayerState::Get().pFilp ? playerBmp[1] : playerBmp[2];
+                SelectObject(scr, pSprite);
+            }
+            else
+            {
+                HBITMAP pSprite = PlayerState::Get().pVert ? playerBmp[3] : playerBmp[0];
+                SelectObject(scr, pSprite);
+            }
+            BitBlt(back, PlayerState::Get().playerPos.x * cell, PlayerState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
         }
         else
         {
-            // 플레이어 죽음
-            SelectObject(scr, deadBmp);
-            BitBlt(back, PlayerState::Get().playerPos.x * cell, PlayerState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
-
             // 몬스터 죽음
             SelectObject(scr, deadBmp);
             for (const pair<int, POINT>& it : GameState::Get().monsterPos)
@@ -127,6 +123,10 @@ void Game::renderPlay()
                 BitBlt(back, bullet.x * cell, bullet.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
                 it = next(it);
             }
+
+            // 플레이어 죽음
+            SelectObject(scr, deadBmp);
+            BitBlt(back, PlayerState::Get().playerPos.x * cell, PlayerState::Get().playerPos.y * cell, cell, cell, scr, 0, 0, SRCCOPY);
         }
     }
     else
