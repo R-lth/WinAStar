@@ -3,7 +3,9 @@
 #include <random>
 #include "GameState.h"
 #include "PlayerState.h"
+#include "Player.h"
 #include "AStar.h"
+
 // TODO. pch.h 활용하기
 
 using namespace std;
@@ -56,6 +58,7 @@ private:
     }
 
 private:
+    Player player;
     AStar aStar;
 
 private:

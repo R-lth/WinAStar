@@ -140,6 +140,78 @@ void Player::loadingBullets(bool arrow[4])
     }
 }
 
+void Player::shoot()
+{
+    using It_gun = std::list<std::pair<ShootDir, POINT>>::iterator;
+    using It_mp = std::map<int, POINT>::iterator;
+
+    for (It_gun it_g = PlayerState::Get().gun.begin(); it_g != PlayerState::Get().gun.end();)
+    {
+        POINT bullet = it_g->second;
+
+        switch (it_g->first)
+        {
+        case ShootDir::UpLeft:
+            bullet.x -= 1;
+            bullet.y -= 1;
+            break;
+        case ShootDir::UpRight:
+            bullet.x += 1;
+            bullet.y -= 1;
+            break;
+        case ShootDir::DownLeft:
+            bullet.x -= 1;
+            bullet.y += 1;
+            break;
+        case ShootDir::DownRight:
+            bullet.x += 1;
+            bullet.y += 1;
+            break;
+        case ShootDir::Up:
+            bullet.y -= 1;
+            break;
+        case ShootDir::Left:
+            bullet.x -= 1;
+            break;
+        case ShootDir::Down:
+            bullet.y += 1;
+            break;
+        case ShootDir::Right:
+            bullet.x += 1;
+            break;
+        default:
+            break;
+        }
+
+        if (!okToGo(bullet))
+        {
+            it_g = PlayerState::Get().gun.erase(it_g);
+            continue;
+        }
+
+        // 피격
+        bool hit = false;
+        for (It_mp it_m = GameState::Get().monsterPos.begin(); it_m != GameState::Get().monsterPos.end();)
+        {
+            if (bullet.x == it_m->second.x && bullet.y == it_m->second.y)
+            {
+                hit = true;
+                it_m = GameState::Get().monsterPos.erase(it_m);
+                it_g = PlayerState::Get().gun.erase(it_g);
+                break; // 몬스터 루프만 탈출
+            }
+
+            it_m = ::next(it_m);
+        }
+
+        if (!hit)
+        {
+            it_g->second = bullet;
+            it_g = ::next(it_g);
+        }
+    }
+}
+
 bool Player::okToGo(POINT pos)
 {
     if (pos.x < 0 || pos.x >= 20 || pos.y < 0 || pos.y >= 20) 
